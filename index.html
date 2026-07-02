@@ -345,11 +345,27 @@ function loadState() {
     return { locations: [], plans: {}, logs: {}, ui: {} };
   }
 }
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch (e) { alert("저장 공간이 부족합니다. [히스토리] 탭에서 오래된 기록을 삭제한 뒤 다시 시도해주세요."); }
+}
 
 let state = loadState();
 if (!state.ui.selectedDate) state.ui.selectedDate = todayStr();
 if (!state.ui.activeTab) state.ui.activeTab = "tab-register";
+
+/* 마이그레이션: 2자리 정규화 이전 버전에서 저장된 1자리 라인 접미사("3")를 "03"으로 통일.
+   호수 계산이 층수×100 기준이므로 자릿수가 다르면 83호/803호처럼 잘못 계산된다. */
+(function migrateLineOffsets() {
+  let changed = false;
+  state.locations.forEach((loc) => {
+    if (Array.isArray(loc.lineOffsets)) {
+      const fixed = loc.lineOffsets.map((o) => String(parseInt(o, 10)).padStart(2, "0"));
+      if (fixed.join() !== loc.lineOffsets.join()) { loc.lineOffsets = fixed; changed = true; }
+    }
+  });
+  if (changed) saveState();
+})();
 
 let editingLocId = null;   // 탭1: 인라인 수정 중인 배송지 id
 let deliveryLocId = null;  // 탭3: 상세 오버레이가 열려있는 배송지 id
@@ -556,6 +572,8 @@ document.getElementById("btn-reg-add").addEventListener("click", () => {
   const dong = dongInput.value.trim();
   if (!apt || !dong) { alert("아파트/지역명과 동을 모두 입력해주세요."); return; }
   const lineOffsets = buildLineOffsets(lineStartInput.value.trim(), parseInt(lineCountInput.value, 10));
+  const dup = state.locations.find((l) => l.apt === apt && l.dong === dong && (l.lineOffsets || []).join() === (lineOffsets || []).join());
+  if (dup && !confirm(`"${apt} ${dong}"은(는) 이미 같은 라인 패턴으로 등록되어 있습니다. 그래도 추가할까요?`)) return;
   const loc = { id: uid(), apt, dong };
   if (lineOffsets) loc.lineOffsets = lineOffsets;
   state.locations.push(loc);
@@ -701,12 +719,9 @@ function openDeliveryDetail(locId) {
   const loc = state.locations.find((l) => l.id === locId);
   if (!loc) return;
   deliveryLocId = locId;
-  ddUnit = ""; ddQty = 1; ddFloor = ""; ddLineOffset = null;
+  ddQty = 1;
   document.getElementById("dd-qty-display").textContent = "1";
-  updateDdUnitDisplay();
-  updateDdFloorDisplay();
-  document.getElementById("dd-quick-preview").classList.add("hidden");
-  document.getElementById("dd-quick-preview").classList.remove("flex");
+  resetDdInput();
   document.getElementById("dd-title").textContent = `${loc.apt} ${loc.dong}`;
   const hasPattern = Array.isArray(loc.lineOffsets) && loc.lineOffsets.length > 0;
   document.getElementById("dd-mode-toggle").classList.toggle("hidden", !hasPattern);
@@ -757,8 +772,19 @@ function applyDdMode() {
   document.getElementById("dd-manual-mode").classList.toggle("flex", ddMode === "manual");
   if (quickAvailable) document.getElementById("dd-mode-switch").textContent = ddMode === "quick" ? "직접 입력으로 전환" : "빠른 입력으로 전환";
 }
+/* 모드 전환 시 입력 상태 전체 초기화 — 이전 모드에서 만들던 호수가 남아
+   화면엔 빈칸인데 엉뚱한 값이 기록되는 것을 방지 */
+function resetDdInput() {
+  ddUnit = ""; ddFloor = ""; ddLineOffset = null;
+  updateDdUnitDisplay();
+  updateDdFloorDisplay();
+  const preview = document.getElementById("dd-quick-preview");
+  preview.classList.add("hidden"); preview.classList.remove("flex");
+  document.querySelectorAll(".dd-line-btn").forEach((b) => b.classList.remove("border-primary", "bg-primary-fixed"));
+}
 document.getElementById("dd-mode-switch").addEventListener("click", () => {
   ddMode = ddMode === "quick" ? "manual" : "quick";
+  resetDdInput();
   applyDdMode();
 });
 function updateDdFloorDisplay() {
@@ -769,7 +795,7 @@ function updateDdFloorDisplay() {
 function updateDdQuickPreview() {
   const box = document.getElementById("dd-quick-preview");
   if (ddFloor === "" || !ddLineOffset) { box.classList.add("hidden"); box.classList.remove("flex"); ddUnit = ""; return; }
-  const width = ddLineOffset.length;
+  const width = Math.max(2, ddLineOffset.length);
   const unit = String(parseInt(ddFloor, 10) * Math.pow(10, width) + parseInt(ddLineOffset, 10));
   ddUnit = unit;
   document.getElementById("dd-quick-preview-label").textContent = `${ddFloor}층 · 라인 ${parseInt(ddLineOffset, 10)}`;
@@ -822,13 +848,9 @@ document.getElementById("dd-add-btn").addEventListener("click", () => {
   state.logs[date][deliveryLocId] = state.logs[date][deliveryLocId] || { apt: loc.apt, dong: loc.dong, lineOffsets: loc.lineOffsets || null, entries: [] };
   state.logs[date][deliveryLocId].entries.push({ id: uid(), unit: ddUnit, qty: ddQty, time: Date.now() });
   saveState();
-  ddUnit = ""; ddQty = 1; ddFloor = ""; ddLineOffset = null;
+  ddQty = 1;
   document.getElementById("dd-qty-display").textContent = "1";
-  updateDdUnitDisplay();
-  updateDdFloorDisplay();
-  document.getElementById("dd-quick-preview").classList.add("hidden");
-  document.getElementById("dd-quick-preview").classList.remove("flex");
-  document.querySelectorAll(".dd-line-btn").forEach((b) => b.classList.remove("border-primary", "bg-primary-fixed"));
+  resetDdInput();
   renderDdEntries();
   haptic(30);
 });
@@ -882,7 +904,7 @@ function buildReport(date) {
     .forEach((locId) => {
       const { apt, dong, lineOffsets, entries } = dayLogs[locId];
       const total = entries.reduce((s, e) => s + e.qty, 0);
-      const detail = entries.map((e) => `${e.unit}호 ${e.qty}개`).join(", ");
+      const detail = entries.slice().sort((a, b) => parseInt(a.unit, 10) - parseInt(b.unit, 10)).map((e) => `${e.unit}호 ${e.qty}개`).join(", ");
       const dongLabel = lineOffsets && lineOffsets.length ? `${dong} (${lineOffsets.map((o) => parseInt(o, 10)).join(",")}라인)` : dong;
       lines.push(`■ ${apt} ${dongLabel}: 총 ${total}개 (상세: ${detail})`);
     });
@@ -965,7 +987,7 @@ document.getElementById("hd-delete").addEventListener("click", () => {
 document.getElementById("btn-history-bulk-delete").addEventListener("click", () => {
   const cutoff = document.getElementById("history-bulk-date").value;
   if (!cutoff) { alert("기준 날짜를 선택해주세요."); return; }
-  const targets = Object.keys(state.logs).filter((d) => d < cutoff);
+  const targets = [...new Set([...Object.keys(state.logs), ...Object.keys(state.plans)])].filter((d) => d < cutoff);
   if (targets.length === 0) { alert("삭제할 기록이 없습니다."); return; }
   if (!confirm(`${cutoff} 이전 기록 ${targets.length}일치를 모두 삭제할까요? 되돌릴 수 없습니다.`)) return;
   targets.forEach((d) => { delete state.logs[d]; delete state.plans[d]; });
