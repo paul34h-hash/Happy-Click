@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>배송 관리</title>
+<meta name="theme-color" content="#003d9b" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="배송 관리" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@500;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "surface": "#fcf9f8", "surface-bright": "#fcf9f8", "surface-dim": "#dcd9d9",
+          "surface-container-lowest": "#ffffff", "surface-container-low": "#f6f3f2",
+          "surface-container": "#f0eded", "surface-container-high": "#eae7e7",
+          "surface-container-highest": "#e5e2e1", "surface-variant": "#e5e2e1",
+          "on-surface": "#1c1b1b", "on-surface-variant": "#434654",
+          "outline": "#737685", "outline-variant": "#c3c6d6",
+          "primary": "#003d9b", "on-primary": "#ffffff",
+          "primary-container": "#0052cc", "on-primary-container": "#c4d2ff", "primary-fixed": "#dae2ff",
+          "secondary": "#006e25", "on-secondary": "#ffffff",
+          "secondary-container": "#80f98b", "on-secondary-container": "#007327",
+          "tertiary": "#8c001f", "on-tertiary": "#ffffff",
+          "tertiary-container": "#ffdad9", "on-tertiary-container": "#920021",
+          "error": "#ba1a1a", "on-error": "#ffffff",
+          "error-container": "#ffdad6", "on-error-container": "#93000a",
+          "background": "#fcf9f8", "on-background": "#1c1b1b"
+        },
+        fontFamily: {
+          "headline": ["Plus Jakarta Sans", "sans-serif"],
+          "body": ["Inter", "sans-serif"],
+          "mono": ["JetBrains Mono", "monospace"]
+        },
+        spacing: {
+          "stack-sm": "8px", "stack-md": "16px", "stack-lg": "24px",
+          "gutter": "16px", "margin-edge": "20px", "unit": "4px", "touch-target-min": "48px"
+        }
+      }
+    }
+  };
+</script>
+<style>
+  * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  html, body { overscroll-behavior-y: none; }
+  body { font-family: 'Inter', sans-serif; min-height: 100dvh; background-color: #fcf9f8; user-select: none; -webkit-user-select: none; }
+  input, textarea { user-select: text; -webkit-user-select: text; touch-action: auto; }
+  .font-mono-num { font-family: 'JetBrains Mono', monospace; }
+  .tab-view { display: none; }
+  .tab-view.active { display: flex; }
+  .numpad-key { height: 60px; display: flex; align-items: center; justify-content: center; background: #ffffff; border: 1px solid #c3c6d6; transition: background-color 60ms; }
+  .numpad-key:active { background-color: #e7edff; }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #c3c6d6; border-radius: 4px; }
+  .card-tap:active { transform: scale(0.97); }
+  main > * { flex-shrink: 0; }
+</style>
+</head>
+<body class="bg-background text-on-surface">
+
+<div id="app" class="min-h-screen flex flex-col">
+
+  <!-- ===================== 헤더 : 앱 타이틀 + 작업 날짜 ===================== -->
+  <header class="pt-safe sticky top-0 z-40 bg-primary text-on-primary px-margin-edge">
+    <div class="h-[52px] flex items-center">
+      <h1 class="font-headline font-bold text-[17px]">배송 관리</h1>
+    </div>
+    <div class="pb-3 flex items-center gap-2">
+      <span class="material-symbols-outlined text-[18px] opacity-80">calendar_month</span>
+      <input id="app-date" type="date" class="flex-1 h-[40px] px-3 rounded-md bg-primary-container text-on-primary-container text-[14px] font-mono-num border-none focus:outline-none" />
+    </div>
+  </header>
+
+  <!-- ===================== 탭1: 배송지 등록/관리 ===================== -->
+  <section id="tab-register" class="tab-view active flex-col flex-1">
+    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-md overflow-y-auto pb-24">
+      <div class="bg-surface-container-lowest border-2 border-outline-variant rounded-lg p-stack-md flex flex-col gap-2">
+        <label class="font-mono-num text-[12px] uppercase text-on-surface-variant">새 배송지 등록</label>
+        <input id="reg-apt" type="text" placeholder="아파트/지역명 (예: A아파트)" class="h-[52px] px-4 bg-surface-container border-2 border-outline-variant rounded-lg text-[16px] focus:outline-none focus:border-primary" />
+        <input id="reg-dong" type="text" placeholder="동 (예: 101동)" class="h-[52px] px-4 bg-surface-container border-2 border-outline-variant rounded-lg text-[16px] focus:outline-none focus:border-primary" />
+        <div class="border-2 border-outline-variant rounded-lg p-stack-sm flex flex-col gap-2">
+          <label class="font-mono-num text-[11px] uppercase text-on-surface-variant">라인 패턴 (선택 · 빠른 호수 입력용)</label>
+          <div class="flex gap-2">
+            <div class="flex-1 min-w-0 flex flex-col gap-1">
+              <span class="text-[11px] text-on-surface-variant">시작 번호</span>
+              <input id="reg-line-start" type="text" inputmode="numeric" placeholder="예: 1" maxlength="2" class="w-full min-w-0 h-[44px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[14px] font-mono-num focus:outline-none focus:border-primary" />
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col gap-1">
+              <span class="text-[11px] text-on-surface-variant">라인 개수</span>
+              <input id="reg-line-count" type="text" inputmode="numeric" placeholder="예: 2" maxlength="2" class="w-full min-w-0 h-[44px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[14px] font-mono-num focus:outline-none focus:border-primary" />
+            </div>
+          </div>
+          <p class="text-[11px] text-on-surface-variant">비워두면 미적용 · "1"만 입력해도 1층 1호=101호 기준(층수×100+번호)으로 자동 계산됩니다.</p>
+        </div>
+        <button id="btn-reg-add" class="h-[52px] bg-primary text-on-primary font-bold rounded-lg active:scale-95 transition-transform">등록</button>
+      </div>
+      <div id="reg-list" class="flex flex-col gap-stack-sm"></div>
+      <div id="reg-empty" class="hidden text-center text-on-surface-variant text-[14px] py-8">등록된 배송지가 없습니다.</div>
+    </main>
+  </section>
+
+  <!-- ===================== 탭2: 배송 준비 (목표 수량) ===================== -->
+  <section id="tab-prep" class="tab-view flex-col flex-1">
+    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-sm overflow-y-auto pb-24">
+      <p class="text-[13px] text-on-surface-variant">금일 배송할 목표 수량을 입력하세요. 비워두어도 다음 단계로 진행할 수 있습니다.</p>
+      <div id="prep-list" class="flex flex-col gap-stack-sm"></div>
+      <div id="prep-empty" class="hidden text-center text-on-surface-variant text-[14px] py-8">먼저 [배송지 등록] 탭에서 배송지를 등록해주세요.</div>
+    </main>
+  </section>
+
+  <!-- ===================== 탭3: 배송중 (실시간 입력) ===================== -->
+  <section id="tab-delivery" class="tab-view flex-col flex-1">
+    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-sm overflow-y-auto pb-24">
+      <div id="delivery-list" class="flex flex-col gap-stack-sm"></div>
+      <div id="delivery-empty" class="hidden text-center text-on-surface-variant text-[14px] py-8">먼저 [배송지 등록] 탭에서 배송지를 등록해주세요.</div>
+    </main>
+  </section>
+
+  <!-- ===================== 탭4: 완료 및 공유 ===================== -->
+  <section id="tab-report" class="tab-view flex-col flex-1">
+    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-md overflow-y-auto pb-24">
+      <textarea id="report-content" readonly class="w-full h-80 bg-surface-container-lowest border border-outline-variant rounded-lg p-stack-md font-mono-num text-[13px] leading-relaxed resize-none focus:outline-none"></textarea>
+      <div class="flex gap-2">
+        <button id="btn-report-copy" class="flex-1 h-[52px] bg-primary text-on-primary font-bold rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
+          <span class="material-symbols-outlined">content_copy</span> 텍스트 복사하기
+        </button>
+        <button id="btn-report-share" class="flex-1 h-[52px] bg-[#FEE500] text-[#191919] font-bold rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
+          <span class="material-symbols-outlined">chat</span> 공유
+        </button>
+      </div>
+    </main>
+  </section>
+
+  <!-- ===================== 탭5: 히스토리 ===================== -->
+  <section id="tab-history" class="tab-view flex-col flex-1">
+    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-sm overflow-y-auto pb-24">
+      <div class="flex items-center gap-2 bg-surface-container-lowest border-2 border-outline-variant rounded-lg p-stack-sm">
+        <input id="history-bulk-date" type="date" class="flex-1 min-w-0 h-[44px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[13px] font-mono-num" />
+        <button id="btn-history-bulk-delete" class="shrink-0 h-[44px] px-3 bg-error-container text-on-error-container font-bold rounded-lg text-[13px] active:scale-95 transition-transform">이전 기록 삭제</button>
+      </div>
+      <div id="history-list" class="flex flex-col gap-stack-sm"></div>
+      <div id="history-empty" class="hidden text-center text-on-surface-variant text-[14px] py-8">저장된 배송 기록이 없습니다.</div>
+    </main>
+  </section>
+
+  <!-- ===================== 하단 탭 네비게이션 ===================== -->
+  <nav class="fixed bottom-0 left-0 w-full h-[68px] flex justify-around items-center bg-surface border-t-2 border-outline-variant pb-safe z-50" id="bottom-nav">
+    <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-primary" data-tab="tab-register">
+      <span class="material-symbols-outlined text-[22px]">add_location</span>
+      <span class="text-[10px] font-bold">등록</span>
+    </button>
+    <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-prep">
+      <span class="material-symbols-outlined text-[22px]">checklist</span>
+      <span class="text-[10px] font-bold">준비</span>
+    </button>
+    <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-delivery">
+      <span class="material-symbols-outlined text-[22px]">local_shipping</span>
+      <span class="text-[10px] font-bold">배송중</span>
+    </button>
+    <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-report">
+      <span class="material-symbols-outlined text-[22px]">task_alt</span>
+      <span class="text-[10px] font-bold">완료</span>
+    </button>
+    <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-history">
+      <span class="material-symbols-outlined text-[22px]">history</span>
+      <span class="text-[10px] font-bold">히스토리</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- ===================== 오버레이: 배송중 상세 입력 ===================== -->
+<div id="delivery-detail" class="hidden fixed inset-0 z-50 bg-surface flex-col">
+  <header class="pt-safe sticky top-0 z-40 bg-primary text-on-primary flex items-center gap-2 h-[56px] px-margin-edge">
+    <button id="dd-back" class="material-symbols-outlined active:scale-90 transition-transform">arrow_back</button>
+    <h1 class="font-headline font-bold text-[16px]" id="dd-title">-</h1>
+  </header>
+  <main class="flex-1 flex flex-col px-gutter py-stack-md gap-stack-md overflow-y-auto pb-24">
+    <div class="flex items-center justify-between bg-surface-container-low p-2 rounded-lg border border-outline-variant">
+      <span class="font-mono-num text-[12px] uppercase text-on-surface-variant">현재 누적</span>
+      <span id="dd-total" class="font-mono-num text-[16px] text-primary font-bold">0개</span>
+    </div>
+
+    <div id="dd-mode-toggle" class="hidden items-center gap-2 bg-primary-fixed text-primary px-3 py-2 rounded-lg text-[12px]">
+      <span class="material-symbols-outlined text-[16px]">bolt</span>
+      <span>빠른 입력 모드</span>
+      <button id="dd-mode-switch" class="ml-auto underline text-[12px]">직접 입력으로 전환</button>
+    </div>
+
+    <section id="dd-quick-mode" class="hidden flex-col gap-stack-sm">
+      <div class="flex flex-col gap-1">
+        <label class="font-mono-num text-[12px] tracking-wide text-on-surface-variant uppercase">층수 입력</label>
+        <div class="bg-surface-container-lowest border-2 border-primary-container h-[52px] flex items-center justify-center rounded-lg">
+          <span id="dd-floor-display" class="font-mono-num text-[26px] text-primary opacity-30">층수</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5 rounded-lg overflow-hidden border-2 border-outline-variant" id="dd-floor-numpad">
+          <button class="numpad-key font-mono-num text-[22px]" data-key="1">1</button>
+          <button class="numpad-key font-mono-num text-[22px]" data-key="2">2</button>
+          <button class="numpad-key font-mono-num text-[22px]" data-key="3">3</button>
+          <button class="numpad-key font-mono-num text-[22px]" data-key="4">4</button>
+          <button class="numpad-key font-mono-num text-[22px]" data-key="5">5</button>
+          <button class="numpad-key font-mono-num text-[22px]" data-key="6">6</button>
+          <button class="numpad-key font-mono-num text-[22px]" data-key="7">7</button>
+          <button class="numpad-key font-mono-num text-[22px]" data-key="8">8</button>
+          <button class="numpad-key font-mono-num text-[22px]" data-key="9">9</button>
+          <button class="numpad-key font-mono-num text-[13px] text-error font-bold" data-key="C">지우기</button>
+          <button class="numpad-key font-mono-num text-[22px]" data-key="0">0</button>
+          <button class="numpad-key" data-key="back"><span class="material-symbols-outlined text-on-surface-variant">backspace</span></button>
+        </div>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-mono-num text-[12px] tracking-wide text-on-surface-variant uppercase">라인 선택</label>
+        <div id="dd-line-buttons" class="grid grid-cols-4 gap-1.5"></div>
+      </div>
+      <div id="dd-quick-preview" class="hidden items-center justify-between bg-secondary-container border border-secondary rounded-lg px-3 py-2">
+        <span class="text-[13px] text-on-secondary-container" id="dd-quick-preview-label">-</span>
+        <span class="font-mono-num text-[20px] text-on-secondary-container font-bold" id="dd-quick-preview-unit">-</span>
+      </div>
+    </section>
+
+    <section id="dd-manual-mode" class="flex flex-col gap-stack-sm">
+      <label class="font-mono-num text-[12px] tracking-wide text-on-surface-variant uppercase">호수 입력</label>
+      <div class="bg-surface-container-lowest border-2 border-primary-container h-[60px] flex items-center justify-center rounded-lg tracking-widest">
+        <span id="dd-unit-display" class="font-mono-num text-[32px] text-primary opacity-30">_ _ _ _</span>
+        <span class="font-headline font-bold text-[16px] ml-2 text-on-surface">호</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1.5 rounded-lg overflow-hidden border-2 border-outline-variant" id="dd-numpad">
+        <button class="numpad-key font-mono-num text-[24px]" data-key="1">1</button>
+        <button class="numpad-key font-mono-num text-[24px]" data-key="2">2</button>
+        <button class="numpad-key font-mono-num text-[24px]" data-key="3">3</button>
+        <button class="numpad-key font-mono-num text-[24px]" data-key="4">4</button>
+        <button class="numpad-key font-mono-num text-[24px]" data-key="5">5</button>
+        <button class="numpad-key font-mono-num text-[24px]" data-key="6">6</button>
+        <button class="numpad-key font-mono-num text-[24px]" data-key="7">7</button>
+        <button class="numpad-key font-mono-num text-[24px]" data-key="8">8</button>
+        <button class="numpad-key font-mono-num text-[24px]" data-key="9">9</button>
+        <button class="numpad-key font-mono-num text-[13px] text-error font-bold" data-key="C">지우기</button>
+        <button class="numpad-key font-mono-num text-[24px]" data-key="0">0</button>
+        <button class="numpad-key" data-key="back"><span class="material-symbols-outlined text-on-surface-variant">backspace</span></button>
+      </div>
+    </section>
+    <div class="flex items-center justify-between bg-surface-container-low p-2 rounded-lg border border-outline-variant">
+      <span class="font-mono-num text-[12px] uppercase text-on-surface-variant">배송 수량</span>
+      <div class="flex items-center gap-stack-md">
+        <button id="dd-qty-minus" class="w-11 h-11 flex items-center justify-center bg-surface-container-highest rounded-full active:scale-95 transition-transform"><span class="material-symbols-outlined">remove</span></button>
+        <span id="dd-qty-display" class="font-mono-num text-[22px] text-primary w-8 text-center">1</span>
+        <button id="dd-qty-plus" class="w-11 h-11 flex items-center justify-center bg-surface-container-highest rounded-full active:scale-95 transition-transform"><span class="material-symbols-outlined">add</span></button>
+      </div>
+    </div>
+    <button id="dd-add-btn" class="w-full h-[72px] bg-primary text-on-primary font-headline font-bold text-[22px] tracking-wide rounded-xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2 shadow-lg">
+      <span class="material-symbols-outlined text-[28px]">check_circle</span> 추가
+    </button>
+    <button id="dd-next-loc" class="w-full h-[48px] border-2 border-primary text-primary font-bold rounded-lg active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined">skip_next</span> 다음 동으로
+    </button>
+    <section class="flex flex-col gap-1">
+      <h2 class="font-mono-num text-[12px] text-on-surface-variant uppercase tracking-wide mt-1">입력된 내역</h2>
+      <div id="dd-entries" class="flex flex-col gap-1"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ===================== 오버레이: 히스토리 상세 ===================== -->
+<div id="history-detail" class="hidden fixed inset-0 z-50 bg-surface flex-col">
+  <header class="pt-safe sticky top-0 z-40 bg-primary text-on-primary flex items-center gap-2 h-[56px] px-margin-edge">
+    <button id="hd-back" class="material-symbols-outlined active:scale-90 transition-transform">arrow_back</button>
+    <h1 class="font-headline font-bold text-[16px]" id="hd-title">-</h1>
+  </header>
+  <main class="flex-1 flex flex-col px-gutter py-stack-md gap-stack-md overflow-y-auto pb-24">
+    <textarea id="hd-content" readonly class="w-full h-80 bg-surface-container-lowest border border-outline-variant rounded-lg p-stack-md font-mono-num text-[13px] leading-relaxed resize-none focus:outline-none"></textarea>
+    <button id="hd-copy" class="w-full h-[52px] bg-primary text-on-primary font-bold rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
+      <span class="material-symbols-outlined">content_copy</span> 텍스트 복사하기
+    </button>
+    <button id="hd-delete" class="w-full h-[48px] border-2 border-error text-error font-bold rounded-lg active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined">delete</span> 이 날짜 기록 삭제
+    </button>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   배송 관리 — 정기 배송 기사용 로컬 저장(LocalStorage) 기반 PWA
+   구조: locations(배송지, 날짜 무관 마스터) → plans[date] / logs[date] (날짜별 목표·기록)
+   외부 서버·DB 없음. 새로고침해도 LocalStorage에서 상태를 복원한다.
+   ============================================================ */
+
+const STORAGE_KEY = "deliverylog_v1";
+
+/* ---------------- 공통 유틸 ---------------- */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function todayStr() {
+  const d = new Date();
+  const tzOffset = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - tzOffset).toISOString().slice(0, 10);
+}
+function pad2(n) { return n.toString().padStart(2, "0"); }
+function timeStr(ts) { const d = new Date(ts); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+function haptic(ms = 20) { if (window.navigator.vibrate) window.navigator.vibrate(ms); }
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+/* 문자열 안의 숫자를 실제 크기로 비교 (예: "2동" < "10동"이 되도록, 사전식 비교의 오류 방지) */
+function naturalCompare(a, b) {
+  const pa = String(a).match(/(\d+|\D+)/g) || [];
+  const pb = String(b).match(/(\d+|\D+)/g) || [];
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const x = pa[i] || "", y = pb[i] || "";
+    if (x === y) continue;
+    const nx = parseInt(x, 10), ny = parseInt(y, 10);
+    if (!isNaN(nx) && !isNaN(ny)) return nx - ny;
+    return x.localeCompare(y, "ko");
+  }
+  return 0;
+}
+
+/* ---------------- 상태 로드/저장 ----------------
+   locations: [{id, apt, dong}]                         날짜와 무관한 배송지 마스터
+   plans:     { [date]: { [locId]: targetQty } }         탭2에서 입력한 목표 수량 (선택)
+   logs:      { [date]: { [locId]: {apt, dong, entries:[{id,unit,qty,time}]} } }
+              apt/dong을 기록 시점에 스냅샷 저장 → 이후 배송지가 수정/삭제되어도 히스토리는 그대로 유지된다.
+   ui:        { selectedDate, activeTab, activeDeliveryLocId }  마지막 작업 상태 복원용
+------------------------------------------------------------- */
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) throw new Error("empty");
+    const parsed = JSON.parse(raw);
+    return {
+      locations: Array.isArray(parsed.locations) ? parsed.locations : [],
+      plans: (parsed.plans && typeof parsed.plans === "object") ? parsed.plans : {},
+      logs: (parsed.logs && typeof parsed.logs === "object") ? parsed.logs : {},
+      ui: (parsed.ui && typeof parsed.ui === "object") ? parsed.ui : {}
+    };
+  } catch (e) {
+    return { locations: [], plans: {}, logs: {}, ui: {} };
+  }
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+let state = loadState();
+if (!state.ui.selectedDate) state.ui.selectedDate = todayStr();
+if (!state.ui.activeTab) state.ui.activeTab = "tab-register";
+
+let editingLocId = null;   // 탭1: 인라인 수정 중인 배송지 id
+let deliveryLocId = null;  // 탭3: 상세 오버레이가 열려있는 배송지 id
+let ddUnit = "";
+let ddQty = 1;
+let ddMode = "manual";     // 탭3 상세: "quick"(층+라인) | "manual"(직접 입력)
+let ddFloor = "";
+let ddLineOffset = null;
+let collapsedApts = new Set(); // 탭2/3 공통: 접힌 아파트 그룹
+
+/* 배송지를 아파트별로 그룹핑 (state.locations의 등록/재정렬 순서 = 실제 배송 동선 순서를 그대로 유지) */
+function groupByApt(locations) {
+  const groups = [];
+  const map = {};
+  locations.forEach((loc) => {
+    if (!map[loc.apt]) { map[loc.apt] = { apt: loc.apt, locs: [] }; groups.push(map[loc.apt]); }
+    map[loc.apt].locs.push(loc);
+  });
+  return groups;
+}
+/* 아파트 그룹 자체의 순서를 위/아래로 이동 */
+function moveAptGroup(apt, direction) {
+  const groups = groupByApt(state.locations);
+  const idx = groups.findIndex((g) => g.apt === apt);
+  if (idx === -1) return;
+  const swapIdx = idx + direction;
+  if (swapIdx < 0 || swapIdx >= groups.length) return;
+  const tmp = groups[idx]; groups[idx] = groups[swapIdx]; groups[swapIdx] = tmp;
+  state.locations = groups.flatMap((g) => g.locs);
+  saveState();
+  renderAll();
+}
+/* 같은 아파트 그룹 내에서 배송지 순서를 위/아래로 이동 (동선 순서 재배열용) */
+function moveLocation(id, direction) {
+  const groups = groupByApt(state.locations);
+  for (const g of groups) {
+    const idx = g.locs.findIndex((l) => l.id === id);
+    if (idx === -1) continue;
+    const swapIdx = idx + direction;
+    if (swapIdx < 0 || swapIdx >= g.locs.length) return;
+    const tmp = g.locs[idx]; g.locs[idx] = g.locs[swapIdx]; g.locs[swapIdx] = tmp;
+    state.locations = groups.flatMap((gr) => gr.locs);
+    saveState();
+    renderAll();
+    return;
+  }
+}
+/* 시작 접미사 + 라인 개수 → 라인 접미사 목록. 호수 = 층수×100 + 접미사(2자리) 관례를 따르므로
+   "1"만 입력해도 항상 2자리로 정규화한다 (예: "3", 2 → ["03","04"], 1층 1호는 11이 아니라 101이어야 함) */
+function buildLineOffsets(startStr, count) {
+  if (!startStr || !count || count < 1) return null;
+  const start = parseInt(startStr, 10);
+  if (isNaN(start)) return null;
+  const offsets = [];
+  for (let i = 0; i < count; i++) offsets.push(String(start + i).padStart(2, "0"));
+  return offsets;
+}
+/* 라인 접미사를 사람이 읽기 좋은 "N호" 형식으로 (앞자리 0 제거) */
+function formatLineOffset(offset) { return `${parseInt(offset, 10)}호`; }
+/* 배송지의 라인 패턴 요약 텍스트 (등록/준비/배송중 공통으로 표시) */
+function locPatternText(loc) {
+  return loc.lineOffsets && loc.lineOffsets.length ? `라인 패턴: ${loc.lineOffsets.map(formatLineOffset).join(", ")}` : "";
+}
+
+/* ---------------- 날짜 선택 (탭2/3/4 공통 작업 날짜) ---------------- */
+const dateInput = document.getElementById("app-date");
+dateInput.value = state.ui.selectedDate;
+dateInput.addEventListener("change", () => {
+  state.ui.selectedDate = dateInput.value || todayStr();
+  saveState();
+  renderAll();
+});
+
+/* ---------------- 탭 전환 ---------------- */
+function showTab(tabId) {
+  document.querySelectorAll(".tab-view").forEach((t) => t.classList.remove("active"));
+  document.getElementById(tabId).classList.add("active");
+  document.querySelectorAll(".nav-btn").forEach((b) => {
+    const on = b.dataset.tab === tabId;
+    b.classList.toggle("text-primary", on);
+    b.classList.toggle("text-on-surface-variant", !on);
+  });
+  state.ui.activeTab = tabId;
+  saveState();
+  if (tabId === "tab-prep") renderPrep();
+  if (tabId === "tab-delivery") renderDelivery();
+  if (tabId === "tab-report") renderReport();
+  if (tabId === "tab-history") renderHistory();
+}
+document.querySelectorAll(".nav-btn").forEach((btn) => {
+  btn.addEventListener("click", () => showTab(btn.dataset.tab));
+});
+
+/* ============================================================
+   탭1: 배송지 등록/관리
+   ============================================================ */
+function renderRegister() {
+  const list = document.getElementById("reg-list");
+  const empty = document.getElementById("reg-empty");
+  if (state.locations.length === 0) { list.innerHTML = ""; empty.classList.remove("hidden"); return; }
+  empty.classList.add("hidden");
+  const groups = groupByApt(state.locations);
+  list.innerHTML = groups.map((g, gi) => `
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center justify-between px-1">
+        <span class="font-mono-num text-[11px] uppercase text-on-surface-variant">${escapeHtml(g.apt)} · ${g.locs.length}개 동</span>
+        <div class="flex items-center gap-1">
+          <button class="btn-apt-up w-7 h-7 flex items-center justify-center ${gi === 0 ? "opacity-20 pointer-events-none" : ""}" data-apt="${escapeHtml(g.apt)}"><span class="material-symbols-outlined text-[18px] text-on-surface-variant">keyboard_arrow_up</span></button>
+          <button class="btn-apt-down w-7 h-7 flex items-center justify-center ${gi === groups.length - 1 ? "opacity-20 pointer-events-none" : ""}" data-apt="${escapeHtml(g.apt)}"><span class="material-symbols-outlined text-[18px] text-on-surface-variant">keyboard_arrow_down</span></button>
+        </div>
+      </div>
+      ${g.locs.map((loc, i) => renderRegisterRow(loc, i === 0, i === g.locs.length - 1)).join("")}
+    </div>
+  `).join("");
+  attachRegisterListHandlers(list);
+}
+function renderRegisterRow(loc, isFirst, isLast) {
+  if (editingLocId === loc.id) {
+    const start = loc.lineOffsets && loc.lineOffsets.length ? loc.lineOffsets[0] : "";
+    const count = loc.lineOffsets ? loc.lineOffsets.length : "";
+    return `
+    <div class="bg-surface-container-lowest border-2 border-primary rounded-lg p-stack-md flex flex-col gap-2" data-loc-id="${loc.id}">
+      <input class="edit-apt h-[48px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[15px] focus:outline-none focus:border-primary" value="${escapeHtml(loc.apt)}" />
+      <input class="edit-dong h-[48px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[15px] focus:outline-none focus:border-primary" value="${escapeHtml(loc.dong)}" />
+      <div class="flex gap-2">
+        <input class="edit-line-start flex-1 min-w-0 w-full h-[40px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[13px] font-mono-num focus:outline-none focus:border-primary" inputmode="numeric" maxlength="2" placeholder="시작 번호 (예: 1)" value="${escapeHtml(start)}" />
+        <input class="edit-line-count flex-1 min-w-0 w-full h-[40px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[13px] font-mono-num focus:outline-none focus:border-primary" inputmode="numeric" maxlength="2" placeholder="라인 개수" value="${count}" />
+      </div>
+      <div class="flex gap-2">
+        <button class="btn-save-loc flex-1 h-[44px] bg-primary text-on-primary font-bold rounded-lg active:scale-95 transition-transform">저장</button>
+        <button class="btn-cancel-loc flex-1 h-[44px] border-2 border-outline-variant rounded-lg active:scale-95 transition-transform">취소</button>
+      </div>
+    </div>`;
+  }
+  const patternText = locPatternText(loc);
+  return `
+  <div class="flex items-center justify-between bg-surface-container-lowest border-2 border-outline-variant rounded-lg p-stack-md" data-loc-id="${loc.id}">
+    <div>
+      <div class="font-headline font-bold text-[16px]">${escapeHtml(loc.dong)}</div>
+      ${patternText ? `<div class="text-[12px] text-on-surface-variant">${escapeHtml(patternText)}</div>` : ""}
+    </div>
+    <div class="flex items-center gap-1">
+      <div class="flex flex-col mr-1">
+        <button class="btn-move-up w-8 h-6 flex items-center justify-center ${isFirst ? "opacity-20 pointer-events-none" : ""}"><span class="material-symbols-outlined text-[16px]">keyboard_arrow_up</span></button>
+        <button class="btn-move-down w-8 h-6 flex items-center justify-center ${isLast ? "opacity-20 pointer-events-none" : ""}"><span class="material-symbols-outlined text-[16px]">keyboard_arrow_down</span></button>
+      </div>
+      <button class="btn-edit-loc w-11 h-11 flex items-center justify-center bg-surface-container-highest rounded-full active:scale-95 transition-transform"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+      <button class="btn-del-loc w-11 h-11 flex items-center justify-center bg-error-container rounded-full active:scale-95 transition-transform"><span class="material-symbols-outlined text-[20px] text-on-error-container">delete</span></button>
+    </div>
+  </div>`;
+}
+function attachRegisterListHandlers(list) {
+  list.querySelectorAll(".btn-apt-up").forEach((btn) => {
+    btn.addEventListener("click", () => moveAptGroup(btn.dataset.apt, -1));
+  });
+  list.querySelectorAll(".btn-apt-down").forEach((btn) => {
+    btn.addEventListener("click", () => moveAptGroup(btn.dataset.apt, 1));
+  });
+  list.querySelectorAll(".btn-move-up").forEach((btn) => {
+    btn.addEventListener("click", () => moveLocation(btn.closest("[data-loc-id]").dataset.locId, -1));
+  });
+  list.querySelectorAll(".btn-move-down").forEach((btn) => {
+    btn.addEventListener("click", () => moveLocation(btn.closest("[data-loc-id]").dataset.locId, 1));
+  });
+  list.querySelectorAll(".btn-edit-loc").forEach((btn) => {
+    btn.addEventListener("click", () => { editingLocId = btn.closest("[data-loc-id]").dataset.locId; renderRegister(); });
+  });
+  list.querySelectorAll(".btn-cancel-loc").forEach((btn) => {
+    btn.addEventListener("click", () => { editingLocId = null; renderRegister(); });
+  });
+  list.querySelectorAll(".btn-save-loc").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const row = btn.closest("[data-loc-id]");
+      const id = row.dataset.locId;
+      const apt = row.querySelector(".edit-apt").value.trim();
+      const dong = row.querySelector(".edit-dong").value.trim();
+      if (!apt || !dong) { alert("아파트/지역명과 동을 모두 입력해주세요."); return; }
+      const lineOffsets = buildLineOffsets(row.querySelector(".edit-line-start").value.trim(), parseInt(row.querySelector(".edit-line-count").value, 10));
+      const loc = state.locations.find((l) => l.id === id);
+      loc.apt = apt; loc.dong = dong;
+      if (lineOffsets) loc.lineOffsets = lineOffsets; else delete loc.lineOffsets;
+      saveState();
+      editingLocId = null;
+      renderAll();
+    });
+  });
+  list.querySelectorAll(".btn-del-loc").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.closest("[data-loc-id]").dataset.locId;
+      const loc = state.locations.find((l) => l.id === id);
+      if (!confirm(`"${loc.apt} ${loc.dong}"을(를) 삭제할까요? 과거 배송 기록은 히스토리에 그대로 남습니다.`)) return;
+      state.locations = state.locations.filter((l) => l.id !== id);
+      saveState();
+      renderAll();
+    });
+  });
+}
+document.getElementById("btn-reg-add").addEventListener("click", () => {
+  const aptInput = document.getElementById("reg-apt");
+  const dongInput = document.getElementById("reg-dong");
+  const lineStartInput = document.getElementById("reg-line-start");
+  const lineCountInput = document.getElementById("reg-line-count");
+  const apt = aptInput.value.trim();
+  const dong = dongInput.value.trim();
+  if (!apt || !dong) { alert("아파트/지역명과 동을 모두 입력해주세요."); return; }
+  const lineOffsets = buildLineOffsets(lineStartInput.value.trim(), parseInt(lineCountInput.value, 10));
+  const loc = { id: uid(), apt, dong };
+  if (lineOffsets) loc.lineOffsets = lineOffsets;
+  state.locations.push(loc);
+  saveState();
+  aptInput.value = ""; dongInput.value = ""; lineStartInput.value = ""; lineCountInput.value = "";
+  renderAll();
+  haptic();
+});
+
+/* ============================================================
+   탭2: 배송 준비 (목표 수량, 선택 입력)
+   ============================================================ */
+function renderPrep() {
+  const list = document.getElementById("prep-list");
+  const empty = document.getElementById("prep-empty");
+  if (state.locations.length === 0) { list.innerHTML = ""; empty.classList.remove("hidden"); return; }
+  empty.classList.add("hidden");
+  const date = state.ui.selectedDate;
+  const dayPlan = state.plans[date] || {};
+  const groups = groupByApt(state.locations);
+  list.innerHTML = groups.map((g) => {
+    const collapsed = collapsedApts.has(g.apt);
+    return `
+    <div class="border-2 border-outline-variant rounded-lg overflow-hidden">
+      <button class="btn-toggle-group w-full flex items-center justify-between bg-surface-container-high px-3 py-3" data-apt="${escapeHtml(g.apt)}">
+        <span class="font-headline font-bold text-[14px]">${escapeHtml(g.apt)} · ${g.locs.length}개 동</span>
+        <span class="material-symbols-outlined text-[18px] text-on-surface-variant">${collapsed ? "chevron_right" : "expand_more"}</span>
+      </button>
+      ${collapsed ? "" : g.locs.map((loc) => `
+        <div class="flex items-center justify-between px-3 py-3 border-t border-outline-variant">
+          <div>
+            <div class="text-[14px]">${escapeHtml(loc.dong)}</div>
+            ${locPatternText(loc) ? `<div class="text-[11px] text-on-surface-variant">${escapeHtml(locPatternText(loc))}</div>` : ""}
+          </div>
+          <div class="flex items-center gap-1">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" class="prep-qty-input w-20 h-[44px] text-center bg-surface-container border-2 border-outline-variant rounded-lg text-[16px] font-mono-num focus:outline-none focus:border-primary" data-loc-id="${loc.id}" value="${dayPlan[loc.id] ?? ""}" placeholder="-" />
+            <span class="text-[12px] text-on-surface-variant ml-1">개</span>
+          </div>
+        </div>
+      `).join("")}
+    </div>`;
+  }).join("");
+
+  list.querySelectorAll(".btn-toggle-group").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const apt = btn.dataset.apt;
+      if (collapsedApts.has(apt)) collapsedApts.delete(apt); else collapsedApts.add(apt);
+      renderPrep();
+    });
+  });
+
+  function saveQty(inp) {
+    const id = inp.dataset.locId;
+    const d = state.ui.selectedDate;
+    state.plans[d] = state.plans[d] || {};
+    const v = inp.value.replace(/[^0-9]/g, "");
+    if (v === "") { delete state.plans[d][id]; }
+    else {
+      const n = Math.max(0, parseInt(v, 10) || 0);
+      state.plans[d][id] = n;
+      inp.value = n;
+    }
+    saveState();
+  }
+  const inputs = Array.from(list.querySelectorAll(".prep-qty-input"));
+  inputs.forEach((inp, idx) => {
+    inp.addEventListener("input", () => { inp.value = inp.value.replace(/[^0-9]/g, ""); });
+    inp.addEventListener("change", () => { saveQty(inp); renderDelivery(); });
+    inp.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      saveQty(inp);
+      renderDelivery();
+      const next = inputs[idx + 1];
+      if (next) next.focus(); else inp.blur();
+    });
+  });
+}
+
+/* ============================================================
+   탭3: 배송중 (실시간 입력)
+   ============================================================ */
+function deliveredQty(date, locId) {
+  const bucket = state.logs[date] && state.logs[date][locId];
+  return bucket ? bucket.entries.reduce((s, e) => s + e.qty, 0) : 0;
+}
+function renderDelivery() {
+  const list = document.getElementById("delivery-list");
+  const empty = document.getElementById("delivery-empty");
+  if (state.locations.length === 0) { list.innerHTML = ""; empty.classList.remove("hidden"); return; }
+  empty.classList.add("hidden");
+  const date = state.ui.selectedDate;
+  const dayPlan = state.plans[date] || {};
+  const groups = groupByApt(state.locations);
+  list.innerHTML = groups.map((g) => {
+    const collapsed = collapsedApts.has(g.apt);
+    return `
+    <div class="border-2 border-outline-variant rounded-lg overflow-hidden">
+      <button class="btn-toggle-group-d w-full flex items-center justify-between bg-surface-container-high px-3 py-3" data-apt="${escapeHtml(g.apt)}">
+        <span class="font-headline font-bold text-[14px]">${escapeHtml(g.apt)} · ${g.locs.length}개 동</span>
+        <span class="material-symbols-outlined text-[18px] text-on-surface-variant">${collapsed ? "chevron_right" : "expand_more"}</span>
+      </button>
+      ${collapsed ? "" : g.locs.map((loc) => {
+        const delivered = deliveredQty(date, loc.id);
+        const target = dayPlan[loc.id];
+        const done = target != null && delivered >= target;
+        const badge = target != null ? `${delivered}/${target}개` : `${delivered}개`;
+        const badgeClass = done ? "bg-secondary-container text-on-secondary-container" : "bg-primary-container text-on-primary-container";
+        return `
+        <button class="card-tap w-full text-left px-3 py-3 border-t border-outline-variant flex items-center justify-between transition-transform" data-loc-id="${loc.id}">
+          <div>
+            <div class="text-[14px]">${escapeHtml(loc.dong)}</div>
+            ${locPatternText(loc) ? `<div class="text-[11px] text-on-surface-variant">${escapeHtml(locPatternText(loc))}</div>` : ""}
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono-num text-[13px] px-2 py-1 rounded ${badgeClass}">${badge}</span>
+            <span class="material-symbols-outlined text-outline-variant">chevron_right</span>
+          </div>
+        </button>`;
+      }).join("")}
+    </div>`;
+  }).join("");
+
+  list.querySelectorAll(".btn-toggle-group-d").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const apt = btn.dataset.apt;
+      if (collapsedApts.has(apt)) collapsedApts.delete(apt); else collapsedApts.add(apt);
+      renderDelivery();
+    });
+  });
+  list.querySelectorAll("[data-loc-id]").forEach((btn) => {
+    btn.addEventListener("click", () => openDeliveryDetail(btn.dataset.locId));
+  });
+}
+
+function getNextLocationId(currentId) {
+  const idx = state.locations.findIndex((l) => l.id === currentId);
+  if (idx === -1 || idx === state.locations.length - 1) return null;
+  return state.locations[idx + 1].id;
+}
+
+function openDeliveryDetail(locId) {
+  const loc = state.locations.find((l) => l.id === locId);
+  if (!loc) return;
+  deliveryLocId = locId;
+  ddUnit = ""; ddQty = 1; ddFloor = ""; ddLineOffset = null;
+  document.getElementById("dd-qty-display").textContent = "1";
+  updateDdUnitDisplay();
+  updateDdFloorDisplay();
+  document.getElementById("dd-quick-preview").classList.add("hidden");
+  document.getElementById("dd-quick-preview").classList.remove("flex");
+  document.getElementById("dd-title").textContent = `${loc.apt} ${loc.dong}`;
+  const hasPattern = Array.isArray(loc.lineOffsets) && loc.lineOffsets.length > 0;
+  document.getElementById("dd-mode-toggle").classList.toggle("hidden", !hasPattern);
+  document.getElementById("dd-mode-toggle").classList.toggle("flex", hasPattern);
+  if (hasPattern) renderDdLineButtons(loc.lineOffsets);
+  ddMode = hasPattern ? "quick" : "manual";
+  applyDdMode();
+  renderDdEntries();
+  const overlay = document.getElementById("delivery-detail");
+  overlay.classList.remove("hidden"); overlay.classList.add("flex");
+  state.ui.activeDeliveryLocId = locId;
+  saveState();
+}
+function closeDeliveryDetail() {
+  deliveryLocId = null;
+  const overlay = document.getElementById("delivery-detail");
+  overlay.classList.add("hidden"); overlay.classList.remove("flex");
+  state.ui.activeDeliveryLocId = null;
+  saveState();
+  renderDelivery();
+}
+document.getElementById("dd-back").addEventListener("click", closeDeliveryDetail);
+document.getElementById("dd-next-loc").addEventListener("click", () => {
+  const nextId = getNextLocationId(deliveryLocId);
+  if (!nextId) { alert("마지막 배송지입니다."); return; }
+  openDeliveryDetail(nextId);
+});
+
+/* ---- 빠른 입력 모드 (층+라인) ---- */
+function renderDdLineButtons(offsets) {
+  const box = document.getElementById("dd-line-buttons");
+  box.innerHTML = offsets.map((o) => `<button class="numpad-key font-mono-num text-[18px] dd-line-btn" data-offset="${o}">${formatLineOffset(o)}</button>`).join("");
+  box.querySelectorAll(".dd-line-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      ddLineOffset = btn.dataset.offset;
+      box.querySelectorAll(".dd-line-btn").forEach((b) => b.classList.remove("border-primary", "bg-primary-fixed"));
+      btn.classList.add("border-primary", "bg-primary-fixed");
+      updateDdQuickPreview();
+      haptic();
+    });
+  });
+}
+function applyDdMode() {
+  const quickAvailable = !document.getElementById("dd-mode-toggle").classList.contains("hidden");
+  document.getElementById("dd-quick-mode").classList.toggle("hidden", ddMode !== "quick");
+  document.getElementById("dd-quick-mode").classList.toggle("flex", ddMode === "quick");
+  document.getElementById("dd-manual-mode").classList.toggle("hidden", ddMode !== "manual");
+  document.getElementById("dd-manual-mode").classList.toggle("flex", ddMode === "manual");
+  if (quickAvailable) document.getElementById("dd-mode-switch").textContent = ddMode === "quick" ? "직접 입력으로 전환" : "빠른 입력으로 전환";
+}
+document.getElementById("dd-mode-switch").addEventListener("click", () => {
+  ddMode = ddMode === "quick" ? "manual" : "quick";
+  applyDdMode();
+});
+function updateDdFloorDisplay() {
+  const el = document.getElementById("dd-floor-display");
+  if (ddFloor === "") { el.textContent = "층수"; el.classList.add("opacity-30"); }
+  else { el.textContent = `${ddFloor}층`; el.classList.remove("opacity-30"); }
+}
+function updateDdQuickPreview() {
+  const box = document.getElementById("dd-quick-preview");
+  if (ddFloor === "" || !ddLineOffset) { box.classList.add("hidden"); box.classList.remove("flex"); ddUnit = ""; return; }
+  const width = ddLineOffset.length;
+  const unit = String(parseInt(ddFloor, 10) * Math.pow(10, width) + parseInt(ddLineOffset, 10));
+  ddUnit = unit;
+  document.getElementById("dd-quick-preview-label").textContent = `${ddFloor}층 · 라인 ${parseInt(ddLineOffset, 10)}`;
+  document.getElementById("dd-quick-preview-unit").textContent = `${unit}호`;
+  box.classList.remove("hidden"); box.classList.add("flex");
+}
+document.getElementById("dd-floor-numpad").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-key]");
+  if (!btn) return;
+  const key = btn.dataset.key;
+  haptic();
+  if (key === "C") ddFloor = "";
+  else if (key === "back") ddFloor = ddFloor.slice(0, -1);
+  else if (ddFloor.length < 3) ddFloor += key;
+  updateDdFloorDisplay();
+  updateDdQuickPreview();
+});
+
+function updateDdUnitDisplay() {
+  const el = document.getElementById("dd-unit-display");
+  if (ddUnit === "") { el.textContent = "_ _ _ _"; el.classList.add("opacity-30"); }
+  else { el.textContent = ddUnit; el.classList.remove("opacity-30"); }
+}
+document.getElementById("dd-numpad").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-key]");
+  if (!btn) return;
+  const key = btn.dataset.key;
+  haptic();
+  if (key === "C") ddUnit = "";
+  else if (key === "back") ddUnit = ddUnit.slice(0, -1);
+  else if (ddUnit.length < 5) ddUnit += key;
+  updateDdUnitDisplay();
+});
+document.getElementById("dd-qty-minus").addEventListener("click", () => {
+  ddQty = Math.max(1, ddQty - 1);
+  document.getElementById("dd-qty-display").textContent = ddQty;
+  haptic();
+});
+document.getElementById("dd-qty-plus").addEventListener("click", () => {
+  ddQty = Math.min(99, ddQty + 1);
+  document.getElementById("dd-qty-display").textContent = ddQty;
+  haptic();
+});
+document.getElementById("dd-add-btn").addEventListener("click", () => {
+  if (ddUnit === "" || !deliveryLocId) return;
+  const date = state.ui.selectedDate;
+  const loc = state.locations.find((l) => l.id === deliveryLocId);
+  if (!loc) return;
+  state.logs[date] = state.logs[date] || {};
+  state.logs[date][deliveryLocId] = state.logs[date][deliveryLocId] || { apt: loc.apt, dong: loc.dong, lineOffsets: loc.lineOffsets || null, entries: [] };
+  state.logs[date][deliveryLocId].entries.push({ id: uid(), unit: ddUnit, qty: ddQty, time: Date.now() });
+  saveState();
+  ddUnit = ""; ddQty = 1; ddFloor = ""; ddLineOffset = null;
+  document.getElementById("dd-qty-display").textContent = "1";
+  updateDdUnitDisplay();
+  updateDdFloorDisplay();
+  document.getElementById("dd-quick-preview").classList.add("hidden");
+  document.getElementById("dd-quick-preview").classList.remove("flex");
+  document.querySelectorAll(".dd-line-btn").forEach((b) => b.classList.remove("border-primary", "bg-primary-fixed"));
+  renderDdEntries();
+  haptic(30);
+});
+function renderDdEntries() {
+  const box = document.getElementById("dd-entries");
+  const date = state.ui.selectedDate;
+  const bucket = state.logs[date] && state.logs[date][deliveryLocId];
+  const entries = bucket ? bucket.entries : [];
+  document.getElementById("dd-total").textContent = `${entries.reduce((s, e) => s + e.qty, 0)}개`;
+  if (entries.length === 0) { box.innerHTML = `<p class="text-[13px] text-on-surface-variant py-2">아직 입력된 내역이 없습니다.</p>`; return; }
+  box.innerHTML = entries.slice().reverse().map((e) => `
+    <div class="flex items-center justify-between py-2 px-3 bg-surface-container-lowest border-l-4 border-secondary rounded" data-entry-id="${e.id}">
+      <div class="flex flex-col">
+        <span class="font-headline font-bold text-[16px]">${escapeHtml(e.unit)}호 <span class="text-[13px] font-normal text-on-surface-variant">· ${e.qty}개</span></span>
+        <span class="font-mono-num text-[11px] text-on-surface-variant">${timeStr(e.time)}</span>
+      </div>
+      <button class="dd-del-entry w-9 h-9 flex items-center justify-center active:scale-90 transition-transform"><span class="material-symbols-outlined text-error text-[20px]">delete</span></button>
+    </div>
+  `).join("");
+  box.querySelectorAll(".dd-del-entry").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const entryId = btn.closest("[data-entry-id]").dataset.entryId;
+      const bucket2 = state.logs[date][deliveryLocId];
+      bucket2.entries = bucket2.entries.filter((en) => en.id !== entryId);
+      if (bucket2.entries.length === 0) delete state.logs[date][deliveryLocId];
+      saveState();
+      renderDdEntries();
+    });
+  });
+}
+
+/* ============================================================
+   탭4: 완료 및 공유 (총정리 리포트)
+   ============================================================ */
+function buildReport(date) {
+  const dayLogs = state.logs[date] || {};
+  const keys = Object.keys(dayLogs).filter((k) => dayLogs[k].entries && dayLogs[k].entries.length);
+  const lines = [`[${date} 배송 보고]`];
+  if (keys.length === 0) { lines.push("해당 날짜의 배송 기록이 없습니다."); return lines.join("\n"); }
+  keys
+    .sort((a, b) => {
+      const la = dayLogs[a], lb = dayLogs[b];
+      const aptCmp = naturalCompare(la.apt, lb.apt);
+      if (aptCmp !== 0) return aptCmp;
+      const dongCmp = naturalCompare(la.dong, lb.dong);
+      if (dongCmp !== 0) return dongCmp;
+      const aOff = la.lineOffsets && la.lineOffsets[0] ? parseInt(la.lineOffsets[0], 10) : 0;
+      const bOff = lb.lineOffsets && lb.lineOffsets[0] ? parseInt(lb.lineOffsets[0], 10) : 0;
+      return aOff - bOff;
+    })
+    .forEach((locId) => {
+      const { apt, dong, lineOffsets, entries } = dayLogs[locId];
+      const total = entries.reduce((s, e) => s + e.qty, 0);
+      const detail = entries.map((e) => `${e.unit}호 ${e.qty}개`).join(", ");
+      const dongLabel = lineOffsets && lineOffsets.length ? `${dong} (${lineOffsets.map((o) => parseInt(o, 10)).join(",")}라인)` : dong;
+      lines.push(`■ ${apt} ${dongLabel}: 총 ${total}개 (상세: ${detail})`);
+    });
+  return lines.join("\n");
+}
+function renderReport() {
+  document.getElementById("report-content").value = buildReport(state.ui.selectedDate);
+}
+async function copyTextArea(ta) {
+  try { await navigator.clipboard.writeText(ta.value); }
+  catch (err) { ta.select(); document.execCommand("copy"); }
+}
+document.getElementById("btn-report-copy").addEventListener("click", async (e) => {
+  await copyTextArea(document.getElementById("report-content"));
+  const btn = e.currentTarget; const orig = btn.innerHTML;
+  btn.innerHTML = `<span class="material-symbols-outlined">check</span> 복사 완료!`;
+  setTimeout(() => btn.innerHTML = orig, 1500);
+});
+document.getElementById("btn-report-share").addEventListener("click", async () => {
+  const text = document.getElementById("report-content").value;
+  if (navigator.share) { try { await navigator.share({ title: "배송 보고", text }); return; } catch (err) { return; } }
+  try { await navigator.clipboard.writeText(text); alert("공유를 지원하지 않는 브라우저입니다. 클립보드에 복사했습니다."); } catch (err) {}
+});
+
+/* ============================================================
+   탭5: 히스토리 (날짜별 과거 기록 조회)
+   ============================================================ */
+function renderHistory() {
+  const list = document.getElementById("history-list");
+  const empty = document.getElementById("history-empty");
+  const dates = Object.keys(state.logs)
+    .filter((d) => Object.values(state.logs[d]).some((b) => b.entries && b.entries.length))
+    .sort((a, b) => b.localeCompare(a));
+  if (dates.length === 0) { list.innerHTML = ""; empty.classList.remove("hidden"); return; }
+  empty.classList.add("hidden");
+  list.innerHTML = dates.map((date) => {
+    const buckets = Object.values(state.logs[date]).filter((b) => b.entries && b.entries.length);
+    const total = buckets.reduce((s, b) => s + b.entries.reduce((s2, e) => s2 + e.qty, 0), 0);
+    return `
+    <button class="card-tap w-full text-left bg-surface-container-lowest border-2 border-outline-variant rounded-lg p-stack-md flex items-center justify-between transition-transform" data-date="${date}">
+      <div>
+        <div class="font-headline font-bold text-[16px]">${date}</div>
+        <div class="text-[13px] text-on-surface-variant">${buckets.length}개 배송지 · 총 ${total}개</div>
+      </div>
+      <span class="material-symbols-outlined text-outline-variant">chevron_right</span>
+    </button>`;
+  }).join("");
+  list.querySelectorAll("[data-date]").forEach((btn) => {
+    btn.addEventListener("click", () => openHistoryDetail(btn.dataset.date));
+  });
+}
+let historyDetailDate = null;
+function openHistoryDetail(date) {
+  historyDetailDate = date;
+  document.getElementById("hd-title").textContent = date;
+  document.getElementById("hd-content").value = buildReport(date);
+  const overlay = document.getElementById("history-detail");
+  overlay.classList.remove("hidden"); overlay.classList.add("flex");
+}
+document.getElementById("hd-back").addEventListener("click", () => {
+  const overlay = document.getElementById("history-detail");
+  overlay.classList.add("hidden"); overlay.classList.remove("flex");
+});
+document.getElementById("hd-copy").addEventListener("click", async (e) => {
+  await copyTextArea(document.getElementById("hd-content"));
+  const btn = e.currentTarget; const orig = btn.innerHTML;
+  btn.innerHTML = `<span class="material-symbols-outlined">check</span> 복사 완료!`;
+  setTimeout(() => btn.innerHTML = orig, 1500);
+});
+document.getElementById("hd-delete").addEventListener("click", () => {
+  if (!historyDetailDate) return;
+  if (!confirm(`${historyDetailDate} 기록을 삭제할까요? 되돌릴 수 없습니다.`)) return;
+  delete state.logs[historyDetailDate];
+  delete state.plans[historyDetailDate];
+  saveState();
+  const overlay = document.getElementById("history-detail");
+  overlay.classList.add("hidden"); overlay.classList.remove("flex");
+  renderHistory();
+});
+document.getElementById("btn-history-bulk-delete").addEventListener("click", () => {
+  const cutoff = document.getElementById("history-bulk-date").value;
+  if (!cutoff) { alert("기준 날짜를 선택해주세요."); return; }
+  const targets = Object.keys(state.logs).filter((d) => d < cutoff);
+  if (targets.length === 0) { alert("삭제할 기록이 없습니다."); return; }
+  if (!confirm(`${cutoff} 이전 기록 ${targets.length}일치를 모두 삭제할까요? 되돌릴 수 없습니다.`)) return;
+  targets.forEach((d) => { delete state.logs[d]; delete state.plans[d]; });
+  saveState();
+  renderHistory();
+});
+
+/* ---------------- 전체 재렌더 ---------------- */
+function renderAll() {
+  renderRegister();
+  renderPrep();
+  renderDelivery();
+  if (document.getElementById("tab-report").classList.contains("active")) renderReport();
+  if (document.getElementById("tab-history").classList.contains("active")) renderHistory();
+}
+
+/* ---------------- 초기 진입 (마지막 작업 상태 복원) ---------------- */
+(function init() {
+  showTab(state.ui.activeTab);
+  renderAll();
+  if (state.ui.activeDeliveryLocId && state.locations.some((l) => l.id === state.ui.activeDeliveryLocId)) {
+    openDeliveryDetail(state.ui.activeDeliveryLocId);
+  }
+})();
+
+/* ---------------- PWA: Service Worker 등록 ---------------- */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+}
+</script>
+</body>
+</html>

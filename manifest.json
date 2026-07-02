@@ -1,0 +1,17 @@
+{
+  "name": "배송 관리 - 정기 배송 기록",
+  "short_name": "배송관리",
+  "description": "외부 서버 없이 브라우저 저장소만으로 동작하는 현장 배송 기사용 정기 배송 관리 PWA",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fcf9f8",
+  "theme_color": "#003d9b",
+  "lang": "ko",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
