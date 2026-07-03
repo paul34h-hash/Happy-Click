@@ -80,6 +80,9 @@
     background-color: #fcf9f8;
   }
 
+  /* iOS는 16px 미만 입력창에 포커스하면 화면을 강제 확대(줌)하고, 줌이 풀리지 않아
+     하단에 빈공간이 남을 수 있다 → 모든 입력창을 16px 이상으로 강제 */
+  input, textarea, select { font-size: 16px !important; }
   input, textarea { user-select: text; -webkit-user-select: text; touch-action: auto; }
   .font-mono-num { font-family: 'JetBrains Mono', monospace; }
   .tab-view { display: none; min-height: 0; }
