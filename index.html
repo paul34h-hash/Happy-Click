@@ -1075,6 +1075,35 @@ function renderAll() {
   }
 })();
 
+// 헤더 5번 연속 클릭 시 PWA 캐시 강제 강제 초기화 (데이터 보존)
+let headerClickCount = 0;
+let headerClickTimer = null;
+document.querySelector("header h1").addEventListener("click", () => {
+  headerClickCount++;
+  clearTimeout(headerClickTimer);
+  if (headerClickCount >= 5) {
+    headerClickCount = 0;
+    if (confirm("앱 캐시를 초기화하고 최신 버전으로 업데이트할까요? (등록한 배송지 데이터는 안전하게 유지됩니다)")) {
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+      if (window.caches) {
+        caches.keys().then((names) => {
+          for (let name of names) caches.delete(name);
+        });
+      }
+      alert("캐시 초기화 완료. 페이지를 새로고침합니다.");
+      window.location.reload(true);
+    }
+  } else {
+    headerClickTimer = setTimeout(() => { headerClickCount = 0; }, 3000);
+  }
+});
+
 /* ---------------- PWA: Service Worker 등록 ---------------- */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js?v=3").catch(() => {}); });
