@@ -1,0 +1,39 @@
+name: Deploy to GitHub Pages
+
+# 기존 "브랜치에서 배포(Deploy from a branch)" 방식이 push 후 빌드를 생성하지 않는
+# 누락이 반복되어(2026-07-03 3회 확인), 매 push마다 확실히 실행되고 실패가 눈에 보이는
+# Actions 워크플로 방식으로 교체한다.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

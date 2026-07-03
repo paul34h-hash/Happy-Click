@@ -1032,9 +1032,11 @@ document.querySelector("header h1").addEventListener("click", () => {
 });
 
 /* ---------------- iOS 뷰포트 밀림 보정 ----------------
-   iOS 홈 화면 앱(PWA)에서 키보드·날짜 선택기가 열리면 레이아웃 뷰포트가 위로 밀리는데,
-   닫힌 뒤에도 스크롤이 0으로 복귀하지 않는 경우가 있다. #app이 position:fixed라서
-   앱 전체가 위로 올라간 채 하단 탭바 아래에 빈 공간이 남으므로, 입력이 끝날 때마다 원위치시킨다. */
+   ① 일반 밀림: 키보드·날짜 선택기가 닫힌 뒤 스크롤이 0으로 복귀하지 않음 → scrollTo로 원위치.
+   ② iOS 26 WebKit 버그(#297779): 키보드가 닫힌 뒤에도 visualViewport.offsetTop이 0으로
+      돌아오지 않고 고정 레이어 전체가 위로 밀린 채 렌더링됨. 스크롤 위치는 이미 0이라
+      scrollTo로는 복구되지 않으므로, 남은 offset만큼 transform으로 역보정한다.
+      (iOS 26.1에서 부분 수정됐지만 잔존 사례 보고됨 — 보정은 offset이 0이면 자동 해제) */
 function isTypingFocused() {
   const el = document.activeElement;
   return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
@@ -1042,19 +1044,52 @@ function isTypingFocused() {
 function restoreViewport() {
   if (isTypingFocused()) return; // 키보드 사용 중에는 입력창이 가려지지 않도록 건드리지 않음
   if (window.scrollX !== 0 || window.scrollY !== 0) window.scrollTo(0, 0);
+  const vv = window.visualViewport;
+  const stuck = vv ? Math.max(0, Math.round(vv.offsetTop || 0)) : 0;
+  const comp = stuck > 0 ? `translateY(${stuck}px)` : "";
+  ["app", "delivery-detail", "history-detail"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el && el.style.transform !== comp) el.style.transform = comp;
+  });
 }
-document.addEventListener("focusout", () => setTimeout(restoreViewport, 60));
+/* iOS가 비동기로 복원하므로 여러 시점에 걸쳐 재시도 */
+function scheduleViewportFix() {
+  [60, 250, 600, 1200].forEach((ms) => setTimeout(restoreViewport, ms));
+}
+document.addEventListener("focusout", scheduleViewportFix);
 window.addEventListener("scroll", restoreViewport);
 if (window.visualViewport) {
-  window.visualViewport.addEventListener("resize", () => setTimeout(restoreViewport, 60));
-  window.visualViewport.addEventListener("scroll", () => setTimeout(restoreViewport, 60));
+  window.visualViewport.addEventListener("resize", scheduleViewportFix);
+  window.visualViewport.addEventListener("scroll", restoreViewport);
 }
 // 탭을 나갔다 돌아오거나 앱이 재활성화될 때도 밀림 상태를 정리
-document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(restoreViewport, 60); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) scheduleViewportFix(); });
+
+/* ---------------- 표시 진단 (달력 아이콘 5번 연속 탭) ----------------
+   아이폰에서 화면 밀림이 재현될 때, 원인 파악에 필요한 뷰포트 수치를 그 자리에서 확인 */
+let diagCount = 0, diagTimer = null;
+document.querySelector("header .material-symbols-outlined").addEventListener("click", () => {
+  diagCount++;
+  clearTimeout(diagTimer);
+  if (diagCount >= 5) {
+    diagCount = 0;
+    const vv = window.visualViewport;
+    alert([
+      "화면 진단 정보",
+      `innerHeight: ${window.innerHeight} / screen: ${screen.height}`,
+      `scrollY: ${window.scrollY}`,
+      vv ? `vv.height: ${Math.round(vv.height)} / offsetTop: ${vv.offsetTop} / pageTop: ${vv.pageTop} / scale: ${vv.scale}` : "visualViewport 미지원",
+      `standalone: ${navigator.standalone === true || matchMedia("(display-mode: standalone)").matches}`,
+      `보정 transform: ${document.getElementById("app").style.transform || "없음"}`
+    ].join("\n"));
+  } else {
+    diagTimer = setTimeout(() => { diagCount = 0; }, 3000);
+  }
+});
 
 /* ---------------- PWA: Service Worker 등록 ---------------- */
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js?v=4").catch(() => {}); });
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js?v=5").catch(() => {}); });
 }
 </script>
 </body>
