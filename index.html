@@ -49,16 +49,23 @@
 </script>
 <style>
   * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-  html, body {
+
+  /* html에도 배경색 지정 — safe area 영역에 색상이 스먼지게 */
+  html {
     height: 100%;
     margin: 0;
     padding: 0;
     overflow: hidden;
     overscroll-behavior: none;
+    background-color: #fcf9f8;
   }
   body {
     font-family: 'Inter', sans-serif;
     height: 100dvh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
     background-color: #fcf9f8;
     user-select: none;
     -webkit-user-select: none;
@@ -74,31 +81,30 @@
   @media (max-height: 640px) { .numpad-key { height: 40px; } }
   .numpad-key:active { background-color: #e7edff; }
 
-  /* ── Safe Area (iPhone 노치/홈바, Galaxy Z Flip 폴더블) ──
-     Tailwind h-[env(...)] 문법은 일부 기기에서 무시됨.
-     padding-bottom을 직접 CSS로 지정하는 것이 가장 안전. */
+  /* ── Safe Area (iPhone 홈바 · Dynamic Island, Galaxy Z Flip) ──
+     중요: constant()을 먼저, env()를 나중에 선언해야함.
+     브라우저는 지원하는 마지막 선언을 적용하므로:
+     - 구 iOS(11.0~11.2): constant() 적용
+     - 신 iOS(11.2+): env()가 constant() 덮어씨서 적용          */
   #bottom-nav {
+    background-color: #fcf9f8;
+    padding-bottom: constant(safe-area-inset-bottom, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    padding-bottom: constant(safe-area-inset-bottom, 0px); /* iOS 11 구버전 */
   }
   .overlay-bottom-safe {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
     padding-bottom: constant(safe-area-inset-bottom, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .safe-top {
-    padding-top: env(safe-area-inset-top, 0px);
     padding-top: constant(safe-area-inset-top, 0px);
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
-  /* ── Galaxy Z Flip 폴더블 대응 ──
-     반접힌(Flex Mode) 상태: 화면 상단 절반만 사용 가능.
-     posture: folded 감지 시 최소 레이아웃으로 전환. */
+  /* ── Galaxy Z Flip 폴더블 대응 ── */
   @media (screen-fold-posture: folded) and (horizontal-viewport-segments: 1) {
     #app { height: 50dvh; }
-    #bottom-nav .h-\[68px\] { height: 56px; }
   }
   @media (max-height: 430px) {
-    /* Z Flip 폴더블 상태 또는 가로 모드 소형폰 대응 */
     #bottom-nav > div:first-child { height: 52px; }
     .numpad-key { height: 38px; font-size: 18px; }
   }
