@@ -160,6 +160,15 @@
       </div>
       <div id="reg-list" class="flex flex-col gap-stack-sm"></div>
       <div id="reg-empty" class="hidden text-center text-on-surface-variant text-[14px] py-8">등록된 배송지가 없습니다.</div>
+      <!-- 배송지 목록을 다른 기기(기사님 폰)로 옮기는 공유/가져오기 -->
+      <div class="flex gap-2">
+        <button id="btn-reg-share" class="flex-1 h-[52px] bg-primary text-on-primary font-bold rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
+          <span class="material-symbols-outlined">ios_share</span> 목록 공유
+        </button>
+        <button id="btn-reg-import" class="flex-1 h-[52px] border-2 border-primary text-primary font-bold rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
+          <span class="material-symbols-outlined">download</span> 목록 가져오기
+        </button>
+      </div>
     </main>
   </section>
 
@@ -645,6 +654,76 @@ document.getElementById("btn-reg-add").addEventListener("click", () => {
   haptic();
 });
 
+/* ---- 배송지 목록 공유 (서버 없이 링크 하나로 다른 기기에 전달) ----
+   사장님 기기에서 등록한 배송지 마스터를 기사님 폰으로 옮기는 기능.
+   locations를 base64url 코드로 만들어 URL 해시(#share=)에 담아 카카오톡 등으로 보내고,
+   받는 쪽은 링크 접속(자동) 또는 [목록 가져오기]에 붙여넣기(수동)로 등록한다.
+   ※ iOS는 홈 화면에 설치된 앱과 브라우저(사파리/카톡 인앱)의 저장소가 분리되어 있어,
+     설치된 앱에 넣으려면 링크를 복사해 [목록 가져오기]로 붙여넣는 경로가 필요하다. */
+function encodeShareData(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  let bin = "";
+  bytes.forEach((b) => { bin += String.fromCharCode(b); });
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function decodeShareData(code) {
+  const bin = atob(code.replace(/-/g, "+").replace(/_/g, "/"));
+  const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+function buildShareUrl() {
+  const payload = { v: 1, locs: state.locations.map((l) => [l.apt, l.dong, l.lineOffsets || 0]) };
+  return `${location.origin}${location.pathname}#share=${encodeShareData(payload)}`;
+}
+/* 공유 코드(또는 코드가 든 링크)를 해석해 확인을 받은 뒤 배송지 목록을 교체 등록 */
+function applySharedLocations(text) {
+  const m = String(text).match(/#share=([A-Za-z0-9_-]+)/);
+  const code = m ? m[1] : String(text).trim();
+  let payload = null;
+  try { payload = decodeShareData(code); } catch (e) {}
+  if (!payload || payload.v !== 1 || !Array.isArray(payload.locs)) {
+    alert("배송지 코드를 읽을 수 없습니다. 링크(또는 코드)가 중간에 잘리지 않았는지 확인해주세요.");
+    return;
+  }
+  const incoming = [];
+  payload.locs.forEach((row) => {
+    if (!Array.isArray(row)) return;
+    const apt = String(row[0] || "").trim();
+    const dong = String(row[1] || "").trim();
+    if (!apt || !dong) return;
+    const loc = { id: uid(), apt, dong };
+    if (Array.isArray(row[2])) {
+      const offsets = row[2].map((o) => parseInt(o, 10)).filter((n) => !isNaN(n)).map((n) => String(n).padStart(2, "0"));
+      if (offsets.length) loc.lineOffsets = offsets;
+    }
+    incoming.push(loc);
+  });
+  if (incoming.length === 0) { alert("가져올 배송지가 없습니다."); return; }
+  const msg = state.locations.length === 0
+    ? `공유받은 배송지 ${incoming.length}개를 등록할까요?`
+    : `공유받은 배송지 ${incoming.length}개를 등록할까요?\n\n현재 등록된 ${state.locations.length}개 목록은 공유받은 목록으로 교체됩니다. (과거 배송 기록·히스토리는 유지)`;
+  if (!confirm(msg)) return;
+  state.locations = incoming;
+  editingLocId = null;
+  saveState();
+  renderAll();
+  alert(`배송지 ${incoming.length}개를 등록했습니다.`);
+}
+document.getElementById("btn-reg-share").addEventListener("click", async () => {
+  if (state.locations.length === 0) { alert("공유할 배송지가 없습니다. 먼저 배송지를 등록해주세요."); return; }
+  const url = buildShareUrl();
+  if (navigator.share) {
+    try { await navigator.share({ title: "배송지 목록", url }); return; } catch (err) { return; }
+  }
+  try { await navigator.clipboard.writeText(url); alert("공유 링크를 복사했습니다. 카카오톡 등에 붙여넣어 전달해주세요."); }
+  catch (err) { prompt("아래 링크를 복사해 전달해주세요.", url); }
+});
+document.getElementById("btn-reg-import").addEventListener("click", () => {
+  const raw = prompt("공유받은 링크(또는 코드)를 붙여넣어주세요.");
+  if (raw == null || raw.trim() === "") return;
+  applySharedLocations(raw);
+});
+
 /* ============================================================
    탭2: 배송 준비 (목표 수량, 선택 입력)
    ============================================================ */
@@ -1075,6 +1154,16 @@ function renderAll() {
   }
 })();
 
+/* 공유 링크(#share=...)로 진입한 경우: 해시를 지운 뒤 가져오기 진행 (새로고침 시 재실행 방지) */
+function importFromHash() {
+  if (!location.hash.startsWith("#share=")) return;
+  const text = location.hash;
+  history.replaceState(null, "", location.pathname + location.search);
+  applySharedLocations(text);
+}
+window.addEventListener("hashchange", importFromHash);
+importFromHash();
+
 // 헤더 5번 연속 클릭 시 PWA 캐시 강제 강제 초기화 (데이터 보존)
 let headerClickCount = 0;
 let headerClickTimer = null;
@@ -1104,9 +1193,27 @@ document.querySelector("header h1").addEventListener("click", () => {
   }
 });
 
+/* ---------------- iOS 뷰포트 밀림 보정 ----------------
+   iOS 홈 화면 앱(PWA)에서 키보드·날짜 선택기가 열리면 레이아웃 뷰포트가 위로 밀리는데,
+   닫힌 뒤에도 스크롤이 0으로 복귀하지 않는 경우가 있다. #app이 position:fixed라서
+   앱 전체가 위로 올라간 채 하단 탭바 아래에 빈 공간이 남으므로, 입력이 끝날 때마다 원위치시킨다. */
+function isTypingFocused() {
+  const el = document.activeElement;
+  return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
+}
+function restoreViewport() {
+  if (isTypingFocused()) return; // 키보드 사용 중에는 입력창이 가려지지 않도록 건드리지 않음
+  if (window.scrollX !== 0 || window.scrollY !== 0) window.scrollTo(0, 0);
+}
+document.addEventListener("focusout", () => setTimeout(restoreViewport, 60));
+window.addEventListener("scroll", restoreViewport);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", () => setTimeout(restoreViewport, 60));
+}
+
 /* ---------------- PWA: Service Worker 등록 ---------------- */
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js?v=3").catch(() => {}); });
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js?v=4").catch(() => {}); });
 }
 </script>
 </body>

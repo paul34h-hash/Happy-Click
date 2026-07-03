@@ -3,7 +3,7 @@
    - 정적 자산(JS/CSS/폰트/아이콘): Cache First (오프라인 대응 — 이 앱은 LocalStorage만 쓰므로
      네트워크가 아예 없어도 기록/조회 자체는 가능하지만, 정적 자산 캐싱으로 재실행 속도를 보장한다)
 */
-const CACHE_NAME = "deliverylog-cache-v2";
+const CACHE_NAME = "deliverylog-cache-v3";
 const PRECACHE_URLS = [
   "./",
   "./index.html",
