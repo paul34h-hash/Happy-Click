@@ -1226,7 +1226,10 @@ document.addEventListener("focusout", () => setTimeout(restoreViewport, 60));
 window.addEventListener("scroll", restoreViewport);
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", () => setTimeout(restoreViewport, 60));
+  window.visualViewport.addEventListener("scroll", () => setTimeout(restoreViewport, 60));
 }
+// 탭을 나갔다 돌아오거나 앱이 재활성화될 때도 밀림 상태를 정리
+document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(restoreViewport, 60); });
 
 /* ---------------- PWA: Service Worker 등록 ---------------- */
 if ("serviceWorker" in navigator) {
