@@ -6,7 +6,10 @@
 <title>배송 관리</title>
 <meta name="theme-color" content="#003d9b" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<!-- iOS 26: black-translucent(투명 상태바) 모드에서 웹뷰 높이가 상태바만큼 짧게 계산되어
+     하단에 죽은 띠(59pt)가 생기는 버그가 있어 default로 변경.
+     (진단 실측: innerHeight 793 vs screen 852 — 차이 59pt = 상태바 높이) -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="배송 관리" />
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
