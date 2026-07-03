@@ -49,13 +49,28 @@
 </script>
 <style>
   * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-  html, body { overscroll-behavior-y: none; }
-  body { font-family: 'Inter', sans-serif; min-height: 100dvh; background-color: #fcf9f8; user-select: none; -webkit-user-select: none; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  body {
+    font-family: 'Inter', sans-serif;
+    height: 100dvh;
+    background-color: #fcf9f8;
+    user-select: none;
+    -webkit-user-select: none;
+  }
   input, textarea { user-select: text; -webkit-user-select: text; touch-action: auto; }
   .font-mono-num { font-family: 'JetBrains Mono', monospace; }
   .tab-view { display: none; }
   .tab-view.active { display: flex; }
-  .numpad-key { height: 60px; display: flex; align-items: center; justify-content: center; background: #ffffff; border: 1px solid #c3c6d6; transition: background-color 60ms; }
+  .numpad-key { height: 54px; display: flex; align-items: center; justify-content: center; background: #ffffff; border: 1px solid #c3c6d6; transition: background-color 60ms; }
+  @media (max-height: 740px) {
+    .numpad-key { height: 46px; }
+  }
   .numpad-key:active { background-color: #e7edff; }
   .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
@@ -67,22 +82,23 @@
 </head>
 <body class="bg-background text-on-surface">
 
-<div id="app" class="min-h-screen flex flex-col">
+<div id="app" class="h-[100dvh] flex flex-col overflow-hidden">
 
   <!-- ===================== 헤더 : 앱 타이틀 + 작업 날짜 ===================== -->
-  <header class="pt-safe sticky top-0 z-40 bg-primary text-on-primary px-margin-edge">
+  <header class="sticky top-0 z-40 bg-primary text-on-primary flex flex-col px-margin-edge">
+    <div class="h-[env(safe-area-inset-top,0px)] w-full"></div>
     <div class="h-[52px] flex items-center">
       <h1 class="font-headline font-bold text-[17px]">배송 관리</h1>
     </div>
     <div class="pb-3 flex items-center gap-2">
       <span class="material-symbols-outlined text-[18px] opacity-80">calendar_month</span>
-      <input id="app-date" type="date" class="flex-1 h-[40px] px-3 rounded-md bg-primary-container text-on-primary-container text-[14px] font-mono-num border-none focus:outline-none" />
+      <input id="app-date" type="date" class="flex-1 h-[40px] px-3 rounded-md bg-primary-container text-on-primary-container text-[15px] font-mono-num border-none focus:outline-none" />
     </div>
   </header>
 
   <!-- ===================== 탭1: 배송지 등록/관리 ===================== -->
-  <section id="tab-register" class="tab-view active flex-col flex-1">
-    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-md overflow-y-auto pb-24">
+  <section id="tab-register" class="tab-view active flex-col flex-1 overflow-hidden">
+    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-md overflow-y-auto pb-6">
       <div class="bg-surface-container-lowest border-2 border-outline-variant rounded-lg p-stack-md flex flex-col gap-2">
         <label class="font-mono-num text-[12px] uppercase text-on-surface-variant">새 배송지 등록</label>
         <input id="reg-apt" type="text" placeholder="아파트/지역명 (예: A아파트)" class="h-[52px] px-4 bg-surface-container border-2 border-outline-variant rounded-lg text-[16px] focus:outline-none focus:border-primary" />
@@ -109,8 +125,8 @@
   </section>
 
   <!-- ===================== 탭2: 배송 준비 (목표 수량) ===================== -->
-  <section id="tab-prep" class="tab-view flex-col flex-1">
-    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-sm overflow-y-auto pb-24">
+  <section id="tab-prep" class="tab-view flex-col flex-1 overflow-hidden">
+    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-sm overflow-y-auto pb-6">
       <p class="text-[13px] text-on-surface-variant">금일 배송할 목표 수량을 입력하세요. 비워두어도 다음 단계로 진행할 수 있습니다.</p>
       <div id="prep-list" class="flex flex-col gap-stack-sm"></div>
       <div id="prep-empty" class="hidden text-center text-on-surface-variant text-[14px] py-8">먼저 [배송지 등록] 탭에서 배송지를 등록해주세요.</div>
@@ -118,16 +134,16 @@
   </section>
 
   <!-- ===================== 탭3: 배송중 (실시간 입력) ===================== -->
-  <section id="tab-delivery" class="tab-view flex-col flex-1">
-    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-sm overflow-y-auto pb-24">
+  <section id="tab-delivery" class="tab-view flex-col flex-1 overflow-hidden">
+    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-sm overflow-y-auto pb-6">
       <div id="delivery-list" class="flex flex-col gap-stack-sm"></div>
       <div id="delivery-empty" class="hidden text-center text-on-surface-variant text-[14px] py-8">먼저 [배송지 등록] 탭에서 배송지를 등록해주세요.</div>
     </main>
   </section>
 
   <!-- ===================== 탭4: 완료 및 공유 ===================== -->
-  <section id="tab-report" class="tab-view flex-col flex-1">
-    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-md overflow-y-auto pb-24">
+  <section id="tab-report" class="tab-view flex-col flex-1 overflow-hidden">
+    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-md overflow-y-auto pb-6">
       <textarea id="report-content" readonly class="w-full h-80 bg-surface-container-lowest border border-outline-variant rounded-lg p-stack-md font-mono-num text-[13px] leading-relaxed resize-none focus:outline-none"></textarea>
       <div class="flex gap-2">
         <button id="btn-report-copy" class="flex-1 h-[52px] bg-primary text-on-primary font-bold rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
@@ -141,8 +157,8 @@
   </section>
 
   <!-- ===================== 탭5: 히스토리 ===================== -->
-  <section id="tab-history" class="tab-view flex-col flex-1">
-    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-sm overflow-y-auto pb-24">
+  <section id="tab-history" class="tab-view flex-col flex-1 overflow-hidden">
+    <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-sm overflow-y-auto pb-6">
       <div class="flex items-center gap-2 bg-surface-container-lowest border-2 border-outline-variant rounded-lg p-stack-sm">
         <input id="history-bulk-date" type="date" class="flex-1 min-w-0 h-[44px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[13px] font-mono-num" />
         <button id="btn-history-bulk-delete" class="shrink-0 h-[44px] px-3 bg-error-container text-on-error-container font-bold rounded-lg text-[13px] active:scale-95 transition-transform">이전 기록 삭제</button>
@@ -153,38 +169,44 @@
   </section>
 
   <!-- ===================== 하단 탭 네비게이션 ===================== -->
-  <nav class="fixed bottom-0 left-0 w-full h-[68px] flex justify-around items-center bg-surface border-t-2 border-outline-variant pb-safe z-50" id="bottom-nav">
-    <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-primary" data-tab="tab-register">
-      <span class="material-symbols-outlined text-[22px]">add_location</span>
-      <span class="text-[10px] font-bold">등록</span>
-    </button>
-    <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-prep">
-      <span class="material-symbols-outlined text-[22px]">checklist</span>
-      <span class="text-[10px] font-bold">준비</span>
-    </button>
-    <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-delivery">
-      <span class="material-symbols-outlined text-[22px]">local_shipping</span>
-      <span class="text-[10px] font-bold">배송중</span>
-    </button>
-    <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-report">
-      <span class="material-symbols-outlined text-[22px]">task_alt</span>
-      <span class="text-[10px] font-bold">완료</span>
-    </button>
-    <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-history">
-      <span class="material-symbols-outlined text-[22px]">history</span>
-      <span class="text-[10px] font-bold">히스토리</span>
-    </button>
+  <nav class="w-full bg-surface border-t-2 border-outline-variant flex flex-col z-50" id="bottom-nav">
+    <div class="h-[68px] w-full flex justify-around items-center">
+      <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-primary" data-tab="tab-register">
+        <span class="material-symbols-outlined text-[22px]">add_location</span>
+        <span class="text-[10px] font-bold">등록</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-prep">
+        <span class="material-symbols-outlined text-[22px]">checklist</span>
+        <span class="text-[10px] font-bold">준비</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-delivery">
+        <span class="material-symbols-outlined text-[22px]">local_shipping</span>
+        <span class="text-[10px] font-bold">배송중</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-report">
+        <span class="material-symbols-outlined text-[22px]">task_alt</span>
+        <span class="text-[10px] font-bold">완료</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-on-surface-variant" data-tab="tab-history">
+        <span class="material-symbols-outlined text-[22px]">history</span>
+        <span class="text-[10px] font-bold">히스토리</span>
+      </button>
+    </div>
+    <div class="h-[env(safe-area-inset-bottom,0px)] w-full"></div>
   </nav>
 
 </div>
 
 <!-- ===================== 오버레이: 배송중 상세 입력 ===================== -->
-<div id="delivery-detail" class="hidden fixed inset-0 z-50 bg-surface flex-col">
-  <header class="pt-safe sticky top-0 z-40 bg-primary text-on-primary flex items-center gap-2 h-[56px] px-margin-edge">
-    <button id="dd-back" class="material-symbols-outlined active:scale-90 transition-transform">arrow_back</button>
-    <h1 class="font-headline font-bold text-[16px]" id="dd-title">-</h1>
+<div id="delivery-detail" class="hidden fixed inset-0 z-50 bg-surface flex-col overflow-hidden">
+  <header class="sticky top-0 z-40 bg-primary text-on-primary flex flex-col px-margin-edge">
+    <div class="h-[env(safe-area-inset-top,0px)] w-full"></div>
+    <div class="h-[56px] flex items-center gap-2">
+      <button id="dd-back" class="material-symbols-outlined active:scale-90 transition-transform">arrow_back</button>
+      <h1 class="font-headline font-bold text-[16px]" id="dd-title">-</h1>
+    </div>
   </header>
-  <main class="flex-1 flex flex-col px-gutter py-stack-md gap-stack-md overflow-y-auto pb-24">
+  <main class="flex-1 flex flex-col px-gutter py-stack-md gap-stack-md overflow-y-auto pb-6">
     <div class="flex items-center justify-between bg-surface-container-low p-2 rounded-lg border border-outline-variant">
       <span class="font-mono-num text-[12px] uppercase text-on-surface-variant">현재 누적</span>
       <span id="dd-total" class="font-mono-num text-[16px] text-primary font-bold">0개</span>
@@ -256,8 +278,8 @@
         <button id="dd-qty-plus" class="w-11 h-11 flex items-center justify-center bg-surface-container-highest rounded-full active:scale-95 transition-transform"><span class="material-symbols-outlined">add</span></button>
       </div>
     </div>
-    <button id="dd-add-btn" class="w-full h-[72px] bg-primary text-on-primary font-headline font-bold text-[22px] tracking-wide rounded-xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2 shadow-lg">
-      <span class="material-symbols-outlined text-[28px]">check_circle</span> 추가
+    <button id="dd-add-btn" class="w-full h-[56px] bg-primary text-on-primary font-headline font-bold text-[18px] tracking-wide rounded-xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2 shadow-lg">
+      <span class="material-symbols-outlined text-[24px]">check_circle</span> 추가
     </button>
     <button id="dd-next-loc" class="w-full h-[48px] border-2 border-primary text-primary font-bold rounded-lg active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
       <span class="material-symbols-outlined">skip_next</span> 다음 동으로
@@ -267,15 +289,19 @@
       <div id="dd-entries" class="flex flex-col gap-1"></div>
     </section>
   </main>
+  <div class="h-[env(safe-area-inset-bottom,0px)] w-full bg-surface"></div>
 </div>
 
 <!-- ===================== 오버레이: 히스토리 상세 ===================== -->
-<div id="history-detail" class="hidden fixed inset-0 z-50 bg-surface flex-col">
-  <header class="pt-safe sticky top-0 z-40 bg-primary text-on-primary flex items-center gap-2 h-[56px] px-margin-edge">
-    <button id="hd-back" class="material-symbols-outlined active:scale-90 transition-transform">arrow_back</button>
-    <h1 class="font-headline font-bold text-[16px]" id="hd-title">-</h1>
+<div id="history-detail" class="hidden fixed inset-0 z-50 bg-surface flex-col overflow-hidden">
+  <header class="sticky top-0 z-40 bg-primary text-on-primary flex flex-col px-margin-edge">
+    <div class="h-[env(safe-area-inset-top,0px)] w-full"></div>
+    <div class="h-[56px] flex items-center gap-2">
+      <button id="hd-back" class="material-symbols-outlined active:scale-90 transition-transform">arrow_back</button>
+      <h1 class="font-headline font-bold text-[16px]" id="hd-title">-</h1>
+    </div>
   </header>
-  <main class="flex-1 flex flex-col px-gutter py-stack-md gap-stack-md overflow-y-auto pb-24">
+  <main class="flex-1 flex flex-col px-gutter py-stack-md gap-stack-md overflow-y-auto pb-6">
     <textarea id="hd-content" readonly class="w-full h-80 bg-surface-container-lowest border border-outline-variant rounded-lg p-stack-md font-mono-num text-[13px] leading-relaxed resize-none focus:outline-none"></textarea>
     <button id="hd-copy" class="w-full h-[52px] bg-primary text-on-primary font-bold rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
       <span class="material-symbols-outlined">content_copy</span> 텍스트 복사하기
@@ -284,6 +310,7 @@
       <span class="material-symbols-outlined">delete</span> 이 날짜 기록 삭제
     </button>
   </main>
+  <div class="h-[env(safe-area-inset-bottom,0px)] w-full bg-surface"></div>
 </div>
 
 <script>
