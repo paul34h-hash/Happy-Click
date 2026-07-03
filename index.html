@@ -48,46 +48,58 @@
   };
 </script>
 <style>
-  * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; box-sizing: border-box; }
 
-  /* html에도 배경색 지정 — safe area 영역에 색상이 스먼지게 */
-  html {
+  html, body {
     height: 100%;
+    width: 100%;
     margin: 0;
     padding: 0;
     overflow: hidden;
     overscroll-behavior: none;
-    background-color: #fcf9f8;
+    background-color: #fcf9f8; /* safe area 영역에 배경색이 비쳐도 샄스러워 보이도로 */
   }
   body {
     font-family: 'Inter', sans-serif;
-    height: 100dvh;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    overscroll-behavior: none;
-    background-color: #fcf9f8;
     user-select: none;
     -webkit-user-select: none;
   }
+
+  /* ─── 핵심 레이아웃: position:fixed 로 화면 전체를 덮음 ───
+     100dvh는 iOS에서 safe area를 제외한 높이라서 gap이 생김.
+     position:fixed + inset:0 이 물리적으로 전체 화면을 커버. */
+  #app {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: #fcf9f8;
+  }
+
   input, textarea { user-select: text; -webkit-user-select: text; touch-action: auto; }
   .font-mono-num { font-family: 'JetBrains Mono', monospace; }
   .tab-view { display: none; }
   .tab-view.active { display: flex; }
 
-  /* 숫자패드 높이 — 기기 높이에 따라 자동 조절 */
+  /* 숫자패드 */
   .numpad-key { height: 54px; display: flex; align-items: center; justify-content: center; background: #ffffff; border: 1px solid #c3c6d6; transition: background-color 60ms; }
   @media (max-height: 740px) { .numpad-key { height: 46px; } }
   @media (max-height: 640px) { .numpad-key { height: 40px; } }
   .numpad-key:active { background-color: #e7edff; }
 
-  /* ── Safe Area (iPhone 홈바 · Dynamic Island, Galaxy Z Flip) ──
-     중요: constant()을 먼저, env()를 나중에 선언해야함.
-     브라우저는 지원하는 마지막 선언을 적용하므로:
-     - 구 iOS(11.0~11.2): constant() 적용
-     - 신 iOS(11.2+): env()가 constant() 덮어씨서 적용          */
+  /* ── Safe Area ──
+     constant() 먼저(iOS 11.0~11.2), env() 나중에(iOS 11.2+) → 나중 것이 덮어씬 */
+  .safe-top {
+    padding-top: constant(safe-area-inset-top, 0px);
+    padding-top: env(safe-area-inset-top, 0px);
+  }
   #bottom-nav {
     background-color: #fcf9f8;
+    flex-shrink: 0;
     padding-bottom: constant(safe-area-inset-bottom, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -95,15 +107,8 @@
     padding-bottom: constant(safe-area-inset-bottom, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .safe-top {
-    padding-top: constant(safe-area-inset-top, 0px);
-    padding-top: env(safe-area-inset-top, 0px);
-  }
 
   /* ── Galaxy Z Flip 폴더블 대응 ── */
-  @media (screen-fold-posture: folded) and (horizontal-viewport-segments: 1) {
-    #app { height: 50dvh; }
-  }
   @media (max-height: 430px) {
     #bottom-nav > div:first-child { height: 52px; }
     .numpad-key { height: 38px; font-size: 18px; }
@@ -117,11 +122,10 @@
 </head>
 <body class="bg-background text-on-surface">
 
-<div id="app" class="h-[100dvh] flex flex-col overflow-hidden">
+<div id="app">
 
   <!-- ===================== 헤더 : 앱 타이틀 + 작업 날짜 ===================== -->
-  <header class="sticky top-0 z-40 bg-primary text-on-primary flex flex-col px-margin-edge">
-    <div class="h-[env(safe-area-inset-top,0px)] w-full"></div>
+  <header class="sticky top-0 z-40 bg-primary text-on-primary flex flex-col px-margin-edge safe-top">
     <div class="h-[52px] flex items-center">
       <h1 class="font-headline font-bold text-[17px]">배송 관리</h1>
     </div>
