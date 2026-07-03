@@ -144,25 +144,13 @@
   <!-- ===================== 탭1: 배송지 등록/관리 ===================== -->
   <section id="tab-register" class="tab-view active flex-col flex-1 overflow-hidden">
     <main class="flex-1 flex flex-col px-gutter py-stack-lg gap-stack-md overflow-y-auto pb-6">
-      <div class="bg-surface-container-lowest border-2 border-outline-variant rounded-lg p-stack-md flex flex-col gap-2">
+      <div class="bg-surface-container-lowest border-2 border-outline-variant rounded-lg p-stack-sm flex flex-col gap-2">
         <label class="font-mono-num text-[12px] uppercase text-on-surface-variant">새 배송지 등록</label>
-        <input id="reg-apt" type="text" placeholder="아파트/지역명 (예: A아파트)" class="h-[52px] px-4 bg-surface-container border-2 border-outline-variant rounded-lg text-[16px] focus:outline-none focus:border-primary" />
-        <input id="reg-dong" type="text" placeholder="동 (예: 101동)" class="h-[52px] px-4 bg-surface-container border-2 border-outline-variant rounded-lg text-[16px] focus:outline-none focus:border-primary" />
-        <div class="border-2 border-outline-variant rounded-lg p-stack-sm flex flex-col gap-2">
-          <label class="font-mono-num text-[11px] uppercase text-on-surface-variant">라인 패턴 (선택 · 빠른 호수 입력용)</label>
-          <div class="flex gap-2">
-            <div class="flex-1 min-w-0 flex flex-col gap-1">
-              <span class="text-[11px] text-on-surface-variant">시작 번호</span>
-              <input id="reg-line-start" type="text" inputmode="numeric" placeholder="예: 1" maxlength="2" class="w-full min-w-0 h-[44px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[14px] font-mono-num focus:outline-none focus:border-primary" />
-            </div>
-            <div class="flex-1 min-w-0 flex flex-col gap-1">
-              <span class="text-[11px] text-on-surface-variant">라인 개수</span>
-              <input id="reg-line-count" type="text" inputmode="numeric" placeholder="예: 2" maxlength="2" class="w-full min-w-0 h-[44px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[14px] font-mono-num focus:outline-none focus:border-primary" />
-            </div>
-          </div>
-          <p class="text-[11px] text-on-surface-variant">비워두면 미적용 · "1"만 입력해도 1층 1호=101호 기준(층수×100+번호)으로 자동 계산됩니다.</p>
+        <div class="flex gap-2">
+          <input id="reg-apt" type="text" placeholder="아파트/지역명" class="flex-1 min-w-0 h-[48px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg focus:outline-none focus:border-primary" />
+          <input id="reg-dong" type="text" placeholder="동 (선택)" class="w-28 min-w-0 h-[48px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg focus:outline-none focus:border-primary" />
         </div>
-        <button id="btn-reg-add" class="h-[52px] bg-primary text-on-primary font-bold rounded-lg active:scale-95 transition-transform">등록</button>
+        <button id="btn-reg-add" class="h-[48px] bg-primary text-on-primary font-bold rounded-lg active:scale-95 transition-transform">등록</button>
       </div>
       <div id="reg-list" class="flex flex-col gap-stack-sm"></div>
       <div id="reg-empty" class="hidden text-center text-on-surface-variant text-[14px] py-8">등록된 배송지가 없습니다.</div>
@@ -261,45 +249,8 @@
     </div>
   </header>
   <main class="flex-1 flex flex-col px-gutter py-stack-md gap-stack-md overflow-y-auto overlay-bottom-safe">
-    <section id="dd-quick-mode" class="hidden flex-col gap-stack-sm">
-      <div class="flex flex-col gap-1">
-        <div class="flex items-center justify-between">
-          <label class="font-mono-num text-[12px] tracking-wide text-on-surface-variant uppercase">층수 입력</label>
-          <button class="dd-mode-switch-btn text-primary text-[12px] underline">직접 입력으로 전환</button>
-        </div>
-        <div class="bg-surface-container-lowest border-2 border-primary-container h-[52px] flex items-center justify-center rounded-lg">
-          <span id="dd-floor-display" class="font-mono-num text-[26px] text-primary opacity-30">층수</span>
-        </div>
-        <div class="grid grid-cols-3 gap-1.5 rounded-lg overflow-hidden border-2 border-outline-variant" id="dd-floor-numpad">
-          <button class="numpad-key font-mono-num text-[22px]" data-key="1">1</button>
-          <button class="numpad-key font-mono-num text-[22px]" data-key="2">2</button>
-          <button class="numpad-key font-mono-num text-[22px]" data-key="3">3</button>
-          <button class="numpad-key font-mono-num text-[22px]" data-key="4">4</button>
-          <button class="numpad-key font-mono-num text-[22px]" data-key="5">5</button>
-          <button class="numpad-key font-mono-num text-[22px]" data-key="6">6</button>
-          <button class="numpad-key font-mono-num text-[22px]" data-key="7">7</button>
-          <button class="numpad-key font-mono-num text-[22px]" data-key="8">8</button>
-          <button class="numpad-key font-mono-num text-[22px]" data-key="9">9</button>
-          <button class="numpad-key font-mono-num text-[13px] text-error font-bold" data-key="C">지우기</button>
-          <button class="numpad-key font-mono-num text-[22px]" data-key="0">0</button>
-          <button class="numpad-key" data-key="back"><span class="material-symbols-outlined text-on-surface-variant">backspace</span></button>
-        </div>
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="font-mono-num text-[12px] tracking-wide text-on-surface-variant uppercase">라인 선택</label>
-        <div id="dd-line-buttons" class="grid grid-cols-4 gap-1.5"></div>
-      </div>
-      <div id="dd-quick-preview" class="flex items-center justify-between rounded-lg px-3 py-2 border bg-surface-container-low border-outline-variant">
-        <span class="text-[13px] text-on-surface-variant" id="dd-quick-preview-label">층수를 입력하세요</span>
-        <span class="font-mono-num text-[20px] font-bold text-on-surface-variant" id="dd-quick-preview-unit">-</span>
-      </div>
-    </section>
-
     <section id="dd-manual-mode" class="flex flex-col gap-stack-sm">
-      <div class="flex items-center justify-between">
-        <label class="font-mono-num text-[12px] tracking-wide text-on-surface-variant uppercase">호수 입력</label>
-        <button id="dd-switch-quick" class="dd-mode-switch-btn hidden text-primary text-[12px] underline">빠른 입력으로 전환</button>
-      </div>
+      <label class="font-mono-num text-[12px] tracking-wide text-on-surface-variant uppercase">호수 입력</label>
       <div class="bg-surface-container-lowest border-2 border-primary-container h-[60px] flex items-center justify-center rounded-lg tracking-widest">
         <span id="dd-unit-display" class="font-mono-num text-[32px] text-primary opacity-30">_ _ _ _</span>
         <span class="font-headline font-bold text-[16px] ml-2 text-on-surface">호</span>
@@ -427,28 +378,14 @@ let state = loadState();
 if (!state.ui.selectedDate) state.ui.selectedDate = todayStr();
 if (!state.ui.activeTab) state.ui.activeTab = "tab-register";
 
-/* 마이그레이션: 2자리 정규화 이전 버전에서 저장된 1자리 라인 접미사("3")를 "03"으로 통일.
-   호수 계산이 층수×100 기준이므로 자릿수가 다르면 83호/803호처럼 잘못 계산된다. */
-(function migrateLineOffsets() {
-  let changed = false;
-  state.locations.forEach((loc) => {
-    if (Array.isArray(loc.lineOffsets)) {
-      const fixed = loc.lineOffsets.map((o) => String(parseInt(o, 10)).padStart(2, "0"));
-      if (fixed.join() !== loc.lineOffsets.join()) { loc.lineOffsets = fixed; changed = true; }
-    }
-  });
-  if (changed) saveState();
-})();
-
 let editingLocId = null;   // 탭1: 인라인 수정 중인 배송지 id
 let deliveryLocId = null;  // 탭3: 상세 오버레이가 열려있는 배송지 id
 let ddUnit = "";
 let ddQty = 1;
-let ddMode = "manual";     // 탭3 상세: "quick"(층+라인) | "manual"(직접 입력)
-let ddQuickAvailable = false; // 현재 열린 배송지에 라인 패턴이 있어 빠른 입력이 가능한지
-let ddFloor = "";
-let ddLineOffset = null;
 let collapsedApts = new Set(); // 탭2/3 공통: 접힌 아파트 그룹
+
+/* 동이 비어있는 배송지(단독 지역 등)는 아파트/지역명 자체를 표시명으로 사용 */
+function locTitle(loc) { return loc.dong || loc.apt; }
 
 /* 배송지를 아파트별로 그룹핑 (state.locations의 등록/재정렬 순서 = 실제 배송 동선 순서를 그대로 유지) */
 function groupByApt(locations) {
@@ -487,23 +424,6 @@ function moveLocation(id, direction) {
     return;
   }
 }
-/* 시작 접미사 + 라인 개수 → 라인 접미사 목록. 호수 = 층수×100 + 접미사(2자리) 관례를 따르므로
-   "1"만 입력해도 항상 2자리로 정규화한다 (예: "3", 2 → ["03","04"], 1층 1호는 11이 아니라 101이어야 함) */
-function buildLineOffsets(startStr, count) {
-  if (!startStr || !count || count < 1) return null;
-  const start = parseInt(startStr, 10);
-  if (isNaN(start)) return null;
-  const offsets = [];
-  for (let i = 0; i < count; i++) offsets.push(String(start + i).padStart(2, "0"));
-  return offsets;
-}
-/* 라인 접미사를 사람이 읽기 좋은 "N호" 형식으로 (앞자리 0 제거) */
-function formatLineOffset(offset) { return `${parseInt(offset, 10)}호`; }
-/* 배송지의 라인 패턴 요약 텍스트 (등록/준비/배송중 공통으로 표시) */
-function locPatternText(loc) {
-  return loc.lineOffsets && loc.lineOffsets.length ? `라인 패턴: ${loc.lineOffsets.map(formatLineOffset).join(", ")}` : "";
-}
-
 /* ---------------- 날짜 선택 (탭2/3/4 공통 작업 날짜) ---------------- */
 const dateInput = document.getElementById("app-date");
 dateInput.value = state.ui.selectedDate;
@@ -558,29 +478,19 @@ function renderRegister() {
 }
 function renderRegisterRow(loc, isFirst, isLast) {
   if (editingLocId === loc.id) {
-    const start = loc.lineOffsets && loc.lineOffsets.length ? loc.lineOffsets[0] : "";
-    const count = loc.lineOffsets ? loc.lineOffsets.length : "";
     return `
-    <div class="bg-surface-container-lowest border-2 border-primary rounded-lg p-stack-md flex flex-col gap-2" data-loc-id="${loc.id}">
-      <input class="edit-apt h-[48px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[15px] focus:outline-none focus:border-primary" value="${escapeHtml(loc.apt)}" />
-      <input class="edit-dong h-[48px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[15px] focus:outline-none focus:border-primary" value="${escapeHtml(loc.dong)}" />
-      <div class="flex gap-2">
-        <input class="edit-line-start flex-1 min-w-0 w-full h-[40px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[13px] font-mono-num focus:outline-none focus:border-primary" inputmode="numeric" maxlength="2" placeholder="시작 번호 (예: 1)" value="${escapeHtml(start)}" />
-        <input class="edit-line-count flex-1 min-w-0 w-full h-[40px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg text-[13px] font-mono-num focus:outline-none focus:border-primary" inputmode="numeric" maxlength="2" placeholder="라인 개수" value="${count}" />
-      </div>
+    <div class="bg-surface-container-lowest border-2 border-primary rounded-lg p-stack-sm flex flex-col gap-2" data-loc-id="${loc.id}">
+      <input class="edit-apt h-[48px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg focus:outline-none focus:border-primary" placeholder="아파트/지역명" value="${escapeHtml(loc.apt)}" />
+      <input class="edit-dong h-[48px] px-3 bg-surface-container border-2 border-outline-variant rounded-lg focus:outline-none focus:border-primary" placeholder="동 (선택)" value="${escapeHtml(loc.dong)}" />
       <div class="flex gap-2">
         <button class="btn-save-loc flex-1 h-[44px] bg-primary text-on-primary font-bold rounded-lg active:scale-95 transition-transform">저장</button>
         <button class="btn-cancel-loc flex-1 h-[44px] border-2 border-outline-variant rounded-lg active:scale-95 transition-transform">취소</button>
       </div>
     </div>`;
   }
-  const patternText = locPatternText(loc);
   return `
-  <div class="flex items-center justify-between bg-surface-container-lowest border-2 border-outline-variant rounded-lg p-stack-md" data-loc-id="${loc.id}">
-    <div>
-      <div class="font-headline font-bold text-[16px]">${escapeHtml(loc.dong)}</div>
-      ${patternText ? `<div class="text-[12px] text-on-surface-variant">${escapeHtml(patternText)}</div>` : ""}
-    </div>
+  <div class="flex items-center justify-between bg-surface-container-lowest border-2 border-outline-variant rounded-lg px-3 py-2" data-loc-id="${loc.id}">
+    <div class="font-headline font-bold text-[16px]">${escapeHtml(locTitle(loc))}</div>
     <div class="flex items-center gap-1">
       <div class="flex flex-col mr-1">
         <button class="btn-move-up w-8 h-6 flex items-center justify-center ${isFirst ? "opacity-20 pointer-events-none" : ""}"><span class="material-symbols-outlined text-[16px]">keyboard_arrow_up</span></button>
@@ -616,11 +526,10 @@ function attachRegisterListHandlers(list) {
       const id = row.dataset.locId;
       const apt = row.querySelector(".edit-apt").value.trim();
       const dong = row.querySelector(".edit-dong").value.trim();
-      if (!apt || !dong) { alert("아파트/지역명과 동을 모두 입력해주세요."); return; }
-      const lineOffsets = buildLineOffsets(row.querySelector(".edit-line-start").value.trim(), parseInt(row.querySelector(".edit-line-count").value, 10));
+      if (!apt) { alert("아파트/지역명을 입력해주세요."); return; }
       const loc = state.locations.find((l) => l.id === id);
       loc.apt = apt; loc.dong = dong;
-      if (lineOffsets) loc.lineOffsets = lineOffsets; else delete loc.lineOffsets;
+      delete loc.lineOffsets;
       saveState();
       editingLocId = null;
       renderAll();
@@ -630,7 +539,7 @@ function attachRegisterListHandlers(list) {
     btn.addEventListener("click", () => {
       const id = btn.closest("[data-loc-id]").dataset.locId;
       const loc = state.locations.find((l) => l.id === id);
-      if (!confirm(`"${loc.apt} ${loc.dong}"을(를) 삭제할까요? 과거 배송 기록은 히스토리에 그대로 남습니다.`)) return;
+      if (!confirm(`"${loc.apt}${loc.dong ? " " + loc.dong : ""}"을(를) 삭제할까요? 과거 배송 기록은 히스토리에 그대로 남습니다.`)) return;
       state.locations = state.locations.filter((l) => l.id !== id);
       saveState();
       renderAll();
@@ -640,19 +549,14 @@ function attachRegisterListHandlers(list) {
 document.getElementById("btn-reg-add").addEventListener("click", () => {
   const aptInput = document.getElementById("reg-apt");
   const dongInput = document.getElementById("reg-dong");
-  const lineStartInput = document.getElementById("reg-line-start");
-  const lineCountInput = document.getElementById("reg-line-count");
   const apt = aptInput.value.trim();
   const dong = dongInput.value.trim();
-  if (!apt || !dong) { alert("아파트/지역명과 동을 모두 입력해주세요."); return; }
-  const lineOffsets = buildLineOffsets(lineStartInput.value.trim(), parseInt(lineCountInput.value, 10));
-  const dup = state.locations.find((l) => l.apt === apt && l.dong === dong && (l.lineOffsets || []).join() === (lineOffsets || []).join());
-  if (dup && !confirm(`"${apt} ${dong}"은(는) 이미 같은 라인 패턴으로 등록되어 있습니다. 그래도 추가할까요?`)) return;
-  const loc = { id: uid(), apt, dong };
-  if (lineOffsets) loc.lineOffsets = lineOffsets;
-  state.locations.push(loc);
+  if (!apt) { alert("아파트/지역명을 입력해주세요."); return; }
+  const dup = state.locations.find((l) => l.apt === apt && (l.dong || "") === dong);
+  if (dup && !confirm(`"${apt}${dong ? " " + dong : ""}"은(는) 이미 등록되어 있습니다. 그래도 추가할까요?`)) return;
+  state.locations.push({ id: uid(), apt, dong });
   saveState();
-  aptInput.value = ""; dongInput.value = ""; lineStartInput.value = ""; lineCountInput.value = "";
+  aptInput.value = ""; dongInput.value = "";
   renderAll();
   haptic();
 });
@@ -748,10 +652,7 @@ function renderPrep() {
       </button>
       ${collapsed ? "" : g.locs.map((loc) => `
         <div class="flex items-center justify-between px-3 py-3 border-t border-outline-variant">
-          <div>
-            <div class="text-[14px]">${escapeHtml(loc.dong)}</div>
-            ${locPatternText(loc) ? `<div class="text-[11px] text-on-surface-variant">${escapeHtml(locPatternText(loc))}</div>` : ""}
-          </div>
+          <span class="text-[14px]">${escapeHtml(locTitle(loc))}</span>
           <div class="flex items-center gap-1">
             <input type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" class="prep-qty-input w-20 h-[44px] text-center bg-surface-container border-2 border-outline-variant rounded-lg text-[16px] font-mono-num focus:outline-none focus:border-primary" data-loc-id="${loc.id}" value="${dayPlan[loc.id] ?? ""}" placeholder="-" />
             <span class="text-[12px] text-on-surface-variant ml-1">개</span>
@@ -828,10 +729,7 @@ function renderDelivery() {
         const badgeClass = done ? "bg-secondary-container text-on-secondary-container" : "bg-primary-container text-on-primary-container";
         return `
         <button class="card-tap w-full text-left px-3 py-3 border-t border-outline-variant flex items-center justify-between transition-transform" data-loc-id="${loc.id}">
-          <div>
-            <div class="text-[14px]">${escapeHtml(loc.dong)}</div>
-            ${locPatternText(loc) ? `<div class="text-[11px] text-on-surface-variant">${escapeHtml(locPatternText(loc))}</div>` : ""}
-          </div>
+          <span class="text-[14px]">${escapeHtml(locTitle(loc))}</span>
           <div class="flex items-center gap-2">
             <span class="font-mono-num text-[13px] px-2 py-1 rounded ${badgeClass}">${badge}</span>
             <span class="material-symbols-outlined text-outline-variant">chevron_right</span>
@@ -866,12 +764,7 @@ function openDeliveryDetail(locId) {
   ddQty = 1;
   document.getElementById("dd-qty-display").textContent = "1";
   resetDdInput();
-  document.getElementById("dd-title").textContent = `${loc.apt} ${loc.dong}`;
-  const hasPattern = Array.isArray(loc.lineOffsets) && loc.lineOffsets.length > 0;
-  ddQuickAvailable = hasPattern;
-  if (hasPattern) renderDdLineButtons(loc.lineOffsets);
-  ddMode = hasPattern ? "quick" : "manual";
-  applyDdMode();
+  document.getElementById("dd-title").textContent = `${loc.apt}${loc.dong ? " " + loc.dong : ""}`;
   renderDdEntries();
   const overlay = document.getElementById("delivery-detail");
   overlay.classList.remove("hidden"); overlay.classList.add("flex");
@@ -893,88 +786,11 @@ document.getElementById("dd-next-loc").addEventListener("click", () => {
   openDeliveryDetail(nextId);
 });
 
-/* ---- 빠른 입력 모드 (층+라인) ---- */
-function renderDdLineButtons(offsets) {
-  const box = document.getElementById("dd-line-buttons");
-  box.innerHTML = offsets.map((o) => `<button class="numpad-key font-mono-num text-[18px] dd-line-btn" data-offset="${o}">${formatLineOffset(o)}</button>`).join("");
-  box.querySelectorAll(".dd-line-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      ddLineOffset = btn.dataset.offset;
-      box.querySelectorAll(".dd-line-btn").forEach((b) => b.classList.remove("border-primary", "bg-primary-fixed"));
-      btn.classList.add("border-primary", "bg-primary-fixed");
-      updateDdQuickPreview();
-      haptic();
-    });
-  });
-}
-function applyDdMode() {
-  document.getElementById("dd-quick-mode").classList.toggle("hidden", ddMode !== "quick");
-  document.getElementById("dd-quick-mode").classList.toggle("flex", ddMode === "quick");
-  document.getElementById("dd-manual-mode").classList.toggle("hidden", ddMode !== "manual");
-  document.getElementById("dd-manual-mode").classList.toggle("flex", ddMode === "manual");
-  // 직접 입력 화면의 "빠른 입력으로 전환" 버튼은 라인 패턴이 있는 동에서만 노출
-  document.getElementById("dd-switch-quick").classList.toggle("hidden", !ddQuickAvailable);
-}
-/* 모드 전환 시 입력 상태 전체 초기화 — 이전 모드에서 만들던 호수가 남아
-   화면엔 빈칸인데 엉뚱한 값이 기록되는 것을 방지 */
+/* 입력 상태 초기화 (상세 진입/기록 추가 후) */
 function resetDdInput() {
-  ddUnit = ""; ddFloor = ""; ddLineOffset = null;
+  ddUnit = "";
   updateDdUnitDisplay();
-  updateDdFloorDisplay();
-  document.querySelectorAll(".dd-line-btn").forEach((b) => b.classList.remove("border-primary", "bg-primary-fixed"));
-  updateDdQuickPreview();
 }
-document.querySelectorAll(".dd-mode-switch-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    ddMode = ddMode === "quick" ? "manual" : "quick";
-    resetDdInput();
-    applyDdMode();
-  });
-});
-function updateDdFloorDisplay() {
-  const el = document.getElementById("dd-floor-display");
-  if (ddFloor === "") { el.textContent = "층수"; el.classList.add("opacity-30"); }
-  else { el.textContent = `${ddFloor}층`; el.classList.remove("opacity-30"); }
-}
-/* 미리보기 행은 항상 자리를 차지한다(레이아웃 고정) — 완성 전엔 회색 안내,
-   층수+라인이 모두 선택되면 초록색으로 바뀌며 호수를 보여준다 */
-function updateDdQuickPreview() {
-  const box = document.getElementById("dd-quick-preview");
-  const label = document.getElementById("dd-quick-preview-label");
-  const unitEl = document.getElementById("dd-quick-preview-unit");
-  const ready = ddFloor !== "" && !!ddLineOffset;
-  box.classList.toggle("bg-secondary-container", ready);
-  box.classList.toggle("border-secondary", ready);
-  box.classList.toggle("bg-surface-container-low", !ready);
-  box.classList.toggle("border-outline-variant", !ready);
-  [label, unitEl].forEach((el) => {
-    el.classList.toggle("text-on-secondary-container", ready);
-    el.classList.toggle("text-on-surface-variant", !ready);
-  });
-  if (!ready) {
-    ddUnit = "";
-    label.textContent = ddFloor === "" ? "층수를 입력하세요" : "라인을 선택하세요";
-    unitEl.textContent = "-";
-    return;
-  }
-  const width = Math.max(2, ddLineOffset.length);
-  const unit = String(parseInt(ddFloor, 10) * Math.pow(10, width) + parseInt(ddLineOffset, 10));
-  ddUnit = unit;
-  label.textContent = `${ddFloor}층 · 라인 ${parseInt(ddLineOffset, 10)}`;
-  unitEl.textContent = `${unit}호`;
-}
-document.getElementById("dd-floor-numpad").addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-key]");
-  if (!btn) return;
-  const key = btn.dataset.key;
-  haptic();
-  if (key === "C") ddFloor = "";
-  else if (key === "back") ddFloor = ddFloor.slice(0, -1);
-  else if (ddFloor.length < 3) ddFloor += key;
-  updateDdFloorDisplay();
-  updateDdQuickPreview();
-});
-
 function updateDdUnitDisplay() {
   const el = document.getElementById("dd-unit-display");
   if (ddUnit === "") { el.textContent = "_ _ _ _"; el.classList.add("opacity-30"); }
@@ -1006,7 +822,7 @@ document.getElementById("dd-add-btn").addEventListener("click", () => {
   const loc = state.locations.find((l) => l.id === deliveryLocId);
   if (!loc) return;
   state.logs[date] = state.logs[date] || {};
-  state.logs[date][deliveryLocId] = state.logs[date][deliveryLocId] || { apt: loc.apt, dong: loc.dong, lineOffsets: loc.lineOffsets || null, entries: [] };
+  state.logs[date][deliveryLocId] = state.logs[date][deliveryLocId] || { apt: loc.apt, dong: loc.dong, entries: [] };
   state.logs[date][deliveryLocId].entries.push({ id: uid(), unit: ddUnit, qty: ddQty, time: Date.now() });
   saveState();
   ddQty = 1;
@@ -1020,7 +836,10 @@ function renderDdEntries() {
   const date = state.ui.selectedDate;
   const bucket = state.logs[date] && state.logs[date][deliveryLocId];
   const entries = bucket ? bucket.entries : [];
-  document.getElementById("dd-total").textContent = `${entries.reduce((s, e) => s + e.qty, 0)}개`;
+  const delivered = entries.reduce((s, e) => s + e.qty, 0);
+  // 준비(목표) 수량이 있으면 "배송/준비"로, 없으면 배송 수량만 표시
+  const target = state.plans[date] && state.plans[date][deliveryLocId];
+  document.getElementById("dd-total").textContent = target != null ? `${delivered}/${target}개` : `${delivered}개`;
   if (entries.length === 0) { box.innerHTML = `<p class="text-[13px] text-on-surface-variant py-2">아직 입력된 내역이 없습니다.</p>`; return; }
   box.innerHTML = entries.slice().sort((a, b) => parseInt(a.unit, 10) - parseInt(b.unit, 10)).map((e) => `
     <div class="flex items-center justify-between py-2 px-3 bg-surface-container-lowest border-l-4 border-secondary rounded" data-entry-id="${e.id}">
@@ -1063,11 +882,10 @@ function buildReport(date) {
       return aOff - bOff;
     })
     .forEach((locId) => {
-      const { apt, dong, lineOffsets, entries } = dayLogs[locId];
+      const { apt, dong, entries } = dayLogs[locId];
       const total = entries.reduce((s, e) => s + e.qty, 0);
       const detail = entries.slice().sort((a, b) => parseInt(a.unit, 10) - parseInt(b.unit, 10)).map((e) => `${e.unit}호 ${e.qty}개`).join(", ");
-      const dongLabel = lineOffsets && lineOffsets.length ? `${dong} (${lineOffsets.map((o) => parseInt(o, 10)).join(",")}라인)` : dong;
-      lines.push(`■ ${apt} ${dongLabel}: 총 ${total}개 (상세: ${detail})`);
+      lines.push(`■ ${apt}${dong ? " " + dong : ""}: 총 ${total}개 (상세: ${detail})`);
     });
   return lines.join("\n");
 }
