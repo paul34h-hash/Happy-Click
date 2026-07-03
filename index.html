@@ -67,13 +67,42 @@
   .font-mono-num { font-family: 'JetBrains Mono', monospace; }
   .tab-view { display: none; }
   .tab-view.active { display: flex; }
+
+  /* 숫자패드 높이 — 기기 높이에 따라 자동 조절 */
   .numpad-key { height: 54px; display: flex; align-items: center; justify-content: center; background: #ffffff; border: 1px solid #c3c6d6; transition: background-color 60ms; }
-  @media (max-height: 740px) {
-    .numpad-key { height: 46px; }
-  }
+  @media (max-height: 740px) { .numpad-key { height: 46px; } }
+  @media (max-height: 640px) { .numpad-key { height: 40px; } }
   .numpad-key:active { background-color: #e7edff; }
-  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
-  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+
+  /* ── Safe Area (iPhone 노치/홈바, Galaxy Z Flip 폴더블) ──
+     Tailwind h-[env(...)] 문법은 일부 기기에서 무시됨.
+     padding-bottom을 직접 CSS로 지정하는 것이 가장 안전. */
+  #bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: constant(safe-area-inset-bottom, 0px); /* iOS 11 구버전 */
+  }
+  .overlay-bottom-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: constant(safe-area-inset-bottom, 0px);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: constant(safe-area-inset-top, 0px);
+  }
+
+  /* ── Galaxy Z Flip 폴더블 대응 ──
+     반접힌(Flex Mode) 상태: 화면 상단 절반만 사용 가능.
+     posture: folded 감지 시 최소 레이아웃으로 전환. */
+  @media (screen-fold-posture: folded) and (horizontal-viewport-segments: 1) {
+    #app { height: 50dvh; }
+    #bottom-nav .h-\[68px\] { height: 56px; }
+  }
+  @media (max-height: 430px) {
+    /* Z Flip 폴더블 상태 또는 가로 모드 소형폰 대응 */
+    #bottom-nav > div:first-child { height: 52px; }
+    .numpad-key { height: 38px; font-size: 18px; }
+  }
+
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-thumb { background: #c3c6d6; border-radius: 4px; }
   .card-tap:active { transform: scale(0.97); }
@@ -169,6 +198,7 @@
   </section>
 
   <!-- ===================== 하단 탭 네비게이션 ===================== -->
+  <!-- padding-bottom은 CSS #bottom-nav에서 env(safe-area-inset-bottom)으로 처리 -->
   <nav class="w-full bg-surface border-t-2 border-outline-variant flex flex-col z-50" id="bottom-nav">
     <div class="h-[68px] w-full flex justify-around items-center">
       <button class="nav-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-primary" data-tab="tab-register">
@@ -192,21 +222,19 @@
         <span class="text-[10px] font-bold">히스토리</span>
       </button>
     </div>
-    <div class="h-[env(safe-area-inset-bottom,0px)] w-full"></div>
   </nav>
 
 </div>
 
 <!-- ===================== 오버레이: 배송중 상세 입력 ===================== -->
 <div id="delivery-detail" class="hidden fixed inset-0 z-50 bg-surface flex-col overflow-hidden">
-  <header class="sticky top-0 z-40 bg-primary text-on-primary flex flex-col px-margin-edge">
-    <div class="h-[env(safe-area-inset-top,0px)] w-full"></div>
+  <header class="sticky top-0 z-40 bg-primary text-on-primary flex flex-col px-margin-edge safe-top">
     <div class="h-[56px] flex items-center gap-2">
       <button id="dd-back" class="material-symbols-outlined active:scale-90 transition-transform">arrow_back</button>
       <h1 class="font-headline font-bold text-[16px]" id="dd-title">-</h1>
     </div>
   </header>
-  <main class="flex-1 flex flex-col px-gutter py-stack-md gap-stack-md overflow-y-auto pb-6">
+  <main class="flex-1 flex flex-col px-gutter py-stack-md gap-stack-md overflow-y-auto overlay-bottom-safe">
     <div class="flex items-center justify-between bg-surface-container-low p-2 rounded-lg border border-outline-variant">
       <span class="font-mono-num text-[12px] uppercase text-on-surface-variant">현재 누적</span>
       <span id="dd-total" class="font-mono-num text-[16px] text-primary font-bold">0개</span>
@@ -289,19 +317,17 @@
       <div id="dd-entries" class="flex flex-col gap-1"></div>
     </section>
   </main>
-  <div class="h-[env(safe-area-inset-bottom,0px)] w-full bg-surface"></div>
 </div>
 
 <!-- ===================== 오버레이: 히스토리 상세 ===================== -->
 <div id="history-detail" class="hidden fixed inset-0 z-50 bg-surface flex-col overflow-hidden">
-  <header class="sticky top-0 z-40 bg-primary text-on-primary flex flex-col px-margin-edge">
-    <div class="h-[env(safe-area-inset-top,0px)] w-full"></div>
+  <header class="sticky top-0 z-40 bg-primary text-on-primary flex flex-col px-margin-edge safe-top">
     <div class="h-[56px] flex items-center gap-2">
       <button id="hd-back" class="material-symbols-outlined active:scale-90 transition-transform">arrow_back</button>
       <h1 class="font-headline font-bold text-[16px]" id="hd-title">-</h1>
     </div>
   </header>
-  <main class="flex-1 flex flex-col px-gutter py-stack-md gap-stack-md overflow-y-auto pb-6">
+  <main class="flex-1 flex flex-col px-gutter py-stack-md gap-stack-md overflow-y-auto overlay-bottom-safe">
     <textarea id="hd-content" readonly class="w-full h-80 bg-surface-container-lowest border border-outline-variant rounded-lg p-stack-md font-mono-num text-[13px] leading-relaxed resize-none focus:outline-none"></textarea>
     <button id="hd-copy" class="w-full h-[52px] bg-primary text-on-primary font-bold rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
       <span class="material-symbols-outlined">content_copy</span> 텍스트 복사하기
@@ -310,7 +336,6 @@
       <span class="material-symbols-outlined">delete</span> 이 날짜 기록 삭제
     </button>
   </main>
-  <div class="h-[env(safe-area-inset-bottom,0px)] w-full bg-surface"></div>
 </div>
 
 <script>
