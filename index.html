@@ -478,7 +478,7 @@ function renderRegister() {
   list.innerHTML = groups.map((g, gi) => `
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between px-1">
-        <span class="font-mono-num text-[11px] uppercase text-on-surface-variant">${escapeHtml(g.apt)} · ${g.locs.length}개 동</span>
+        <span class="font-headline font-bold text-[14px]">${escapeHtml(g.apt)} · ${g.locs.length}개 동</span>
         <div class="flex items-center gap-1">
           <button class="btn-apt-up w-7 h-7 flex items-center justify-center ${gi === 0 ? "opacity-20 pointer-events-none" : ""}" data-apt="${escapeHtml(g.apt)}"><span class="material-symbols-outlined text-[18px] text-on-surface-variant">keyboard_arrow_up</span></button>
           <button class="btn-apt-down w-7 h-7 flex items-center justify-center ${gi === groups.length - 1 ? "opacity-20 pointer-events-none" : ""}" data-apt="${escapeHtml(g.apt)}"><span class="material-symbols-outlined text-[18px] text-on-surface-variant">keyboard_arrow_down</span></button>
