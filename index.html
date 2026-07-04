@@ -390,6 +390,16 @@ let collapsedApts = new Set(); // 탭2/3 공통: 접힌 아파트 그룹
 /* 동이 비어있는 배송지(단독 지역 등)는 아파트/지역명 자체를 표시명으로 사용 */
 function locTitle(loc) { return loc.dong || loc.apt; }
 
+/* 배송/목표 배지 색상: 초과(빨강 · 확인 필요) / 정확히 달성(초록) / 미달(파랑, 기본)
+   — 배송중 카드 목록과 상세화면 상단 배지에 동일하게 적용 */
+const BADGE_COLOR_CLASSES = ["bg-primary-container", "text-on-primary-container", "bg-secondary-container", "text-on-secondary-container", "bg-error-container", "text-on-error-container"];
+function badgeColorClasses(delivered, target) {
+  if (target == null) return ["bg-primary-container", "text-on-primary-container"];
+  if (delivered > target) return ["bg-error-container", "text-on-error-container"];
+  if (delivered === target) return ["bg-secondary-container", "text-on-secondary-container"];
+  return ["bg-primary-container", "text-on-primary-container"];
+}
+
 /* 배송지를 아파트별로 그룹핑 (state.locations의 등록/재정렬 순서 = 실제 배송 동선 순서를 그대로 유지) */
 function groupByApt(locations) {
   const groups = [];
@@ -727,9 +737,8 @@ function renderDelivery() {
       ${collapsed ? "" : g.locs.map((loc) => {
         const delivered = deliveredQty(date, loc.id);
         const target = dayPlan[loc.id];
-        const done = target != null && delivered >= target;
         const badge = target != null ? `${delivered}/${target}개` : `${delivered}개`;
-        const badgeClass = done ? "bg-secondary-container text-on-secondary-container" : "bg-primary-container text-on-primary-container";
+        const badgeClass = badgeColorClasses(delivered, target).join(" ");
         return `
         <button class="card-tap w-full text-left px-3 py-3 border-t border-outline-variant flex items-center justify-between transition-transform" data-loc-id="${loc.id}">
           <span class="text-[14px]">${escapeHtml(locTitle(loc))}</span>
@@ -842,9 +851,13 @@ function renderDdEntries() {
   const delivered = entries.reduce((s, e) => s + e.qty, 0);
   // 준비(목표) 수량이 있으면 "배송/준비"로, 없으면 배송 수량만 표시
   const target = state.plans[date] && state.plans[date][deliveryLocId];
-  document.getElementById("dd-total").textContent = target != null ? `${delivered}/${target}개` : `${delivered}개`;
+  const totalEl = document.getElementById("dd-total");
+  totalEl.textContent = target != null ? `${delivered}/${target}개` : `${delivered}개`;
+  totalEl.classList.remove(...BADGE_COLOR_CLASSES);
+  totalEl.classList.add(...badgeColorClasses(delivered, target));
   if (entries.length === 0) { box.innerHTML = `<p class="text-[13px] text-on-surface-variant py-2">아직 입력된 내역이 없습니다.</p>`; return; }
-  box.innerHTML = entries.slice().sort((a, b) => parseInt(a.unit, 10) - parseInt(b.unit, 10)).map((e) => `
+  // 최신 입력이 최상단에 오도록 (호수순 정렬은 이전/지금 배송을 헷갈리게 해 되돌림)
+  box.innerHTML = entries.slice().reverse().map((e) => `
     <div class="flex items-center justify-between py-2 px-3 bg-surface-container-lowest border-l-4 border-secondary rounded" data-entry-id="${e.id}">
       <div class="flex flex-col">
         <span class="font-headline font-bold text-[16px]">${escapeHtml(e.unit)}호 <span class="text-[13px] font-normal text-on-surface-variant">· ${e.qty}개</span></span>
@@ -1089,6 +1102,22 @@ document.querySelector("header .material-symbols-outlined").addEventListener("cl
     diagTimer = setTimeout(() => { diagCount = 0; }, 3000);
   }
 });
+
+/* ---------------- 화면 잠금 방지 (배송 중 화면이 꺼지지 않도록) ----------------
+   OS가 백그라운드 전환 시 wake lock을 자동 해제하므로, 탭이 다시 보이면 재요청한다.
+   미지원 브라우저·배터리 절약 모드 등에서는 조용히 실패해도 무방 (핵심 기능 아님). */
+let wakeLock = null;
+async function requestWakeLock() {
+  if (!("wakeLock" in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", () => { wakeLock = null; });
+  } catch (e) { /* 미지원/거부 시 무시 */ }
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") requestWakeLock();
+});
+requestWakeLock();
 
 /* ---------------- PWA: Service Worker 등록 ---------------- */
 if ("serviceWorker" in navigator) {
