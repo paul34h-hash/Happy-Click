@@ -504,10 +504,8 @@ function renderRegisterRow(loc, isFirst, isLast) {
   <div class="flex items-center justify-between bg-surface-container-lowest border-2 border-outline-variant rounded-lg px-3 py-2" data-loc-id="${loc.id}">
     <div class="font-headline font-bold text-[16px]">${escapeHtml(locTitle(loc))}</div>
     <div class="flex items-center gap-1">
-      <div class="flex flex-col mr-1">
-        <button class="btn-move-up w-8 h-6 flex items-center justify-center ${isFirst ? "opacity-20 pointer-events-none" : ""}"><span class="material-symbols-outlined text-[16px]">keyboard_arrow_up</span></button>
-        <button class="btn-move-down w-8 h-6 flex items-center justify-center ${isLast ? "opacity-20 pointer-events-none" : ""}"><span class="material-symbols-outlined text-[16px]">keyboard_arrow_down</span></button>
-      </div>
+      <button class="btn-move-up w-11 h-11 flex items-center justify-center bg-surface-container-highest rounded-full active:scale-95 transition-transform ${isFirst ? "opacity-20 pointer-events-none" : ""}"><span class="material-symbols-outlined text-[20px]">keyboard_arrow_up</span></button>
+      <button class="btn-move-down w-11 h-11 flex items-center justify-center bg-surface-container-highest rounded-full active:scale-95 transition-transform ${isLast ? "opacity-20 pointer-events-none" : ""}"><span class="material-symbols-outlined text-[20px]">keyboard_arrow_down</span></button>
       <button class="btn-edit-loc w-11 h-11 flex items-center justify-center bg-surface-container-highest rounded-full active:scale-95 transition-transform"><span class="material-symbols-outlined text-[20px]">edit</span></button>
       <button class="btn-del-loc w-11 h-11 flex items-center justify-center bg-error-container rounded-full active:scale-95 transition-transform"><span class="material-symbols-outlined text-[20px] text-on-error-container">delete</span></button>
     </div>
@@ -666,7 +664,7 @@ function renderPrep() {
         <div class="flex items-center justify-between px-3 py-3 border-t border-outline-variant">
           <span class="text-[14px]">${escapeHtml(locTitle(loc))}</span>
           <div class="flex items-center gap-1">
-            <input type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" class="prep-qty-input w-20 h-[44px] text-center bg-surface-container border-2 border-outline-variant rounded-lg text-[16px] font-mono-num focus:outline-none focus:border-primary" data-loc-id="${loc.id}" value="${dayPlan[loc.id] ?? ""}" placeholder="-" />
+            <input type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" class="prep-qty-input w-16 h-8 text-center bg-surface-container border border-outline-variant rounded-lg text-[14px] font-mono-num focus:outline-none focus:border-primary" data-loc-id="${loc.id}" value="${dayPlan[loc.id] ?? ""}" placeholder="-" />
             <span class="text-[12px] text-on-surface-variant ml-1">개</span>
           </div>
         </div>
