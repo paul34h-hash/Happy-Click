@@ -377,7 +377,8 @@ function saveState() {
 }
 
 let state = loadState();
-if (!state.ui.selectedDate) state.ui.selectedDate = todayStr();
+// 앱을 새로 열 때마다 오늘 날짜로 자동 전환 (전날 날짜에 머물러 있던 상태로 켜지는 것 방지)
+if (state.ui.selectedDate !== todayStr()) state.ui.selectedDate = todayStr();
 if (!state.ui.activeTab) state.ui.activeTab = "tab-register";
 
 let editingLocId = null;   // 탭1: 인라인 수정 중인 배송지 id
